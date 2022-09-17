@@ -12,7 +12,7 @@ final class OnboardingView: UIView {
 
     struct OnboardingViewModel {
         let image: UIImage? = UIImage(named: "Logo")
-        let title: String = "Разрешить приложению  Weather использовать данные о местоположении вашего устройства"
+        let title: String = "Разрешить приложению  Weather использовать данные\nо местоположении вашего устройства"
         let text: String = "Чтобы получить более точные прогнозы погоды во время движения или путешествия"
         let secondaryText: String = "Вы можете изменить свой выбор в любое время из меню приложения"
 
@@ -73,7 +73,7 @@ final class OnboardingView: UIView {
         let button = UIButton()
 
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 12)
+        button.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
 
         button.backgroundColor = .brandOrange
         button.layer.cornerRadius = 10
@@ -194,7 +194,7 @@ final class OnboardingView: UIView {
         noButton.snp.makeConstraints { make in
             make.top.equalTo(yesButton.snp.bottom).offset(25)
             make.trailing.equalTo(yesButton)
-
+            make.height.equalTo(40)
             make.bottom.equalTo(scrollView.contentLayoutGuide).offset(-77)
         }
 

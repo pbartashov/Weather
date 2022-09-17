@@ -1,13 +1,14 @@
 //
-//  OnboardingViewController.swift
+//  SettingsViewController.swift
 //  Weather
 //
-//  Created by Павел Барташов on 15.09.2022.
+//  Created by Павел Барташов on 17.09.2022.
 //
 
 import UIKit
 
-final class OnboardingViewController: UIViewController {
+final class SettingsViewController: UIViewController {
+
 
     // MARK: - Properties
 
@@ -16,19 +17,14 @@ final class OnboardingViewController: UIViewController {
     // MARK: - LifeCicle
 
     override func loadView() {
-        view = OnboardingView()
+        view = SettingsView()
     }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         self.view.backgroundColor = .brandBlue
         
-//        let onboardingView = OnboardingView()
-//        view.addSubview(onboardingView)
-//
-//        onboardingView.snp.makeConstraints { make in
-//            make.edges.equalToSuperview()
-//        }
         setupViewModel()
         // Do any additional setup after loading the view.
     }
@@ -40,8 +36,6 @@ final class OnboardingViewController: UIViewController {
     private func setupViewModel() {
 
     }
-    
+
 
 }
-
-#warning("Readme")

@@ -17,6 +17,11 @@
 		6E79FF7228D34C2F00062A0B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7128D34C2F00062A0B /* OnboardingView.swift */; };
 		6E79FF7428D486C800062A0B /* -Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7328D486C800062A0B /* -Constants.swift */; };
 		6E79FF7728D52DD800062A0B /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7628D52DD800062A0B /* UIColor+.swift */; };
+		6E79FF7928D55BD700062A0B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7828D55BD700062A0B /* SettingsView.swift */; };
+		6E79FF7B28D55BE300062A0B /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7A28D55BE300062A0B /* SettingsViewController.swift */; };
+		6E79FF7D28D568D900062A0B /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7C28D568D900062A0B /* SettingsRow.swift */; };
+		6E79FF7F28D585F900062A0B /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF7E28D585F900062A0B /* Settings.swift */; };
+		6E79FF8128D58C7800062A0B /* SettingsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E79FF8028D58C7800062A0B /* SettingsStorage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +36,11 @@
 		6E79FF7128D34C2F00062A0B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		6E79FF7328D486C800062A0B /* -Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "-Constants.swift"; sourceTree = "<group>"; };
 		6E79FF7628D52DD800062A0B /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
+		6E79FF7828D55BD700062A0B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		6E79FF7A28D55BE300062A0B /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		6E79FF7C28D568D900062A0B /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
+		6E79FF7E28D585F900062A0B /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		6E79FF8028D58C7800062A0B /* SettingsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStorage.swift; sourceTree = "<group>"; };
 		739CDDFB1C139610EF56C319 /* Pods-Weather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Weather.release.xcconfig"; path = "Target Support Files/Pods-Weather/Pods-Weather.release.xcconfig"; sourceTree = "<group>"; };
 		C9F4AE47D5716BF10C5841B2 /* Pods-Weather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Weather.debug.xcconfig"; path = "Target Support Files/Pods-Weather/Pods-Weather.debug.xcconfig"; sourceTree = "<group>"; };
 		D623407EED505A4F27893D69 /* Pods_Weather.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Weather.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -92,6 +102,11 @@
 				6E79FF5A28D3472E00062A0B /* SceneDelegate.swift */,
 				6E79FF6F28D3481300062A0B /* OnboardingViewController.swift */,
 				6E79FF7128D34C2F00062A0B /* OnboardingView.swift */,
+				6E79FF7C28D568D900062A0B /* SettingsRow.swift */,
+				6E79FF7828D55BD700062A0B /* SettingsView.swift */,
+				6E79FF7E28D585F900062A0B /* Settings.swift */,
+				6E79FF8028D58C7800062A0B /* SettingsStorage.swift */,
+				6E79FF7A28D55BE300062A0B /* SettingsViewController.swift */,
 				6E79FF6428D3472F00062A0B /* Assets.xcassets */,
 				6E79FF6628D3472F00062A0B /* LaunchScreen.storyboard */,
 				6E79FF6928D3472F00062A0B /* Info.plist */,
@@ -223,12 +238,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E79FF6328D3472E00062A0B /* Weather.xcdatamodeld in Sources */,
+				6E79FF7928D55BD700062A0B /* SettingsView.swift in Sources */,
+				6E79FF8128D58C7800062A0B /* SettingsStorage.swift in Sources */,
 				6E79FF5928D3472E00062A0B /* AppDelegate.swift in Sources */,
 				6E79FF5B28D3472E00062A0B /* SceneDelegate.swift in Sources */,
 				6E79FF7228D34C2F00062A0B /* OnboardingView.swift in Sources */,
 				6E79FF7028D3481300062A0B /* OnboardingViewController.swift in Sources */,
 				6E79FF7428D486C800062A0B /* -Constants.swift in Sources */,
+				6E79FF7D28D568D900062A0B /* SettingsRow.swift in Sources */,
 				6E79FF7728D52DD800062A0B /* UIColor+.swift in Sources */,
+				6E79FF7F28D585F900062A0B /* Settings.swift in Sources */,
+				6E79FF7B28D55BE300062A0B /* SettingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
