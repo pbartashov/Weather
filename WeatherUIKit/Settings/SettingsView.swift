@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import WeatherKit
 
 final class SettingsView: UIView {
 
@@ -64,7 +65,7 @@ final class SettingsView: UIView {
         return stack
     }()
 
-    private temperatureDict = Dictionary<Settings.Temperature, 0
+    //    private temperatureDict = Dictionary<Settings.Temperature, 0
     private lazy var temperatureRow: SettingsRow = {
         let celcius = UIAction(title: "C") { [weak self] _ in
             self?.settings.temperature = .celcius
@@ -75,31 +76,68 @@ final class SettingsView: UIView {
             self?.settings.temperature = .farenheit
         }
 
-        return SettingsRow(title: "Температура", actions: [celcius, farenheit])
+        var actions: [UIAction?] = [nil, nil]
+        actions[Settings.Temperature.celcius.rawValue] = celcius
+        actions[Settings.Temperature.farenheit.rawValue] = farenheit
+
+        return SettingsRow(title: "Температура", actions: actions.compactMap { $0 })
     }()
 
-    private let windVelocityRow: SettingsRow = {
-        let miles = UIAction(title: "Mi") { _ in () }
-        let kilometers = UIAction(title: "Km") { _ in () }
+    private lazy var windVelocityRow: SettingsRow = {
+        let miles = UIAction(title: "Mi") { [weak self] _ in
+            self?.settings.velocity = .miles
 
-        return SettingsRow(title: "Скорость ветра", actions: [miles, kilometers])
+        }
+
+        let kilometers = UIAction(title: "Km") { [weak self] _ in
+            self?.settings.velocity = .kilometers
+
+        }
+
+        var actions: [UIAction?] = [nil, nil]
+        actions[Settings.Velocity.miles.rawValue] = miles
+        actions[Settings.Velocity.kilometers.rawValue] = kilometers
+
+        return SettingsRow(title: "Скорость ветра", actions: actions.compactMap { $0 })
     }()
 
-    private let timeFormatRow: SettingsRow = {
-        let twelve = UIAction(title: "12") { _ in () }
-        let twentyfour = UIAction(title: "24") { _ in () }
+    private lazy var timeFormatRow: SettingsRow = {
+        let format12 = UIAction(title: "12") { [weak self] _ in
+            self?.settings.timeFormat = .format12
 
-        return SettingsRow(title: "Формат времени", actions: [twelve, twentyfour])
+        }
+
+        let format24 = UIAction(title: "24") { [weak self] _ in
+            self?.settings.timeFormat = .format24
+
+        }
+
+        var actions: [UIAction?] = [nil, nil]
+        actions[Settings.TimeFormat.format12.rawValue] = format12
+        actions[Settings.TimeFormat.format24.rawValue] = format24
+
+        return SettingsRow(title: "Формат времени", actions: actions.compactMap { $0 })
     }()
 
-    private let notificationsRow: SettingsRow = {
-        let on = UIAction(title: "On") { _ in () }
-        let off = UIAction(title: "Off") { _ in () }
+    private lazy var notificationsRow: SettingsRow = {
+        let on = UIAction(title: "On") { [weak self] _ in
+            self?.settings.notificationsState = .enabled
 
-        return SettingsRow(title: "Уведомления", actions: [on, off])
+        }
+
+        let off = UIAction(title: "Off") { [weak self] _ in
+            self?.settings.notificationsState = .disabled
+
+        }
+
+        var actions: [UIAction?] = [nil, nil]
+        actions[Settings.Notifications.enabled.rawValue] = on
+        actions[Settings.Notifications.disabled.rawValue] = off
+
+        return SettingsRow(title: "Уведомления", actions: actions.compactMap { $0 })
     }()
 
-    let setupButton: UIButton = {
+    private lazy var setupButton: UIButton = {
         let button = UIButton()
 
         button.setTitle("Установить ", for: .normal)
@@ -110,6 +148,8 @@ final class SettingsView: UIView {
 
         button.layer.cornerRadius = 10
         button.layer.masksToBounds = true
+
+        button.addTarget(self, action: #selector(setupButtonTapped), for: .touchUpInside)
 
         return button
     }()
@@ -196,7 +236,7 @@ final class SettingsView: UIView {
         contentView.snp.makeConstraints { make in
             make.center.equalToSuperview()
             make.width.equalTo(320)
-//            make.height.equalTo(330)
+            //            make.height.equalTo(330)
         }
 
         titleLabel.snp.makeConstraints { make in
@@ -219,38 +259,47 @@ final class SettingsView: UIView {
         }
     }
 
-//    private func createTemperatureRow() -> SettingsRow {
-//        let celcius = UIAction(title: "C") { _ in () }
-//        let farenheit = UIAction(title: "F") { _ in () }
-//        return SettingsRow(title: "Температура", actions: [celcius, farenheit])
-//    }
-//
-//    private func createWindVelocityRow() -> SettingsRow {
-//        let miles = UIAction(title: "Mi") { _ in () }
-//        let kilometers = UIAction(title: "Km") { _ in () }
-//        return SettingsRow(title: "Скорость ветра", actions: [miles, kilometers])
-//    }
-//
-//    private func createTimeFormatRow() -> SettingsRow {
-//        let twelve = UIAction(title: "12") { _ in () }
-//        let twentyfour = UIAction(title: "24") { _ in () }
-//        return SettingsRow(title: "Формат времени", actions: [twelve, twentyfour])
-//    }
-//
-//    private func createNotificationsRow() -> SettingsRow {
-//        let on = UIAction(title: "On") { _ in () }
-//        let off = UIAction(title: "Off") { _ in () }
-//        return SettingsRow(title: "Уведомления", actions: [on, off])
-//    }
+    //    private func createTemperatureRow() -> SettingsRow {
+    //        let celcius = UIAction(title: "C") { _ in () }
+    //        let farenheit = UIAction(title: "F") { _ in () }
+    //        return SettingsRow(title: "Температура", actions: [celcius, farenheit])
+    //    }
+    //
+    //    private func createWindVelocityRow() -> SettingsRow {
+    //        let miles = UIAction(title: "Mi") { _ in () }
+    //        let kilometers = UIAction(title: "Km") { _ in () }
+    //        return SettingsRow(title: "Скорость ветра", actions: [miles, kilometers])
+    //    }
+    //
+    //    private func createTimeFormatRow() -> SettingsRow {
+    //        let twelve = UIAction(title: "12") { _ in () }
+    //        let twentyfour = UIAction(title: "24") { _ in () }
+    //        return SettingsRow(title: "Формат времени", actions: [twelve, twentyfour])
+    //    }
+    //
+    //    private func createNotificationsRow() -> SettingsRow {
+    //        let on = UIAction(title: "On") { _ in () }
+    //        let off = UIAction(title: "Off") { _ in () }
+    //        return SettingsRow(title: "Уведомления", actions: [on, off])
+    //    }
 
 
     private func setup() {
-        switch settings.temperature {
-            case .celcius:
-                temperatureRow.setSelectedIndex(0)
-            case .farenheit:
-                temperatureRow.setSelectedIndex(1)
-        }
 
+        temperatureRow.setSelectedIndex(settings.temperature.rawValue)
+        windVelocityRow.setSelectedIndex(settings.velocity.rawValue)
+        timeFormatRow.setSelectedIndex(settings.timeFormat.rawValue)
+        notificationsRow.setSelectedIndex(settings.notificationsState.rawValue)
+        //        switch settings.temperature {
+        //            case .celcius:
+        //                temperatureRow.setSelectedIndex(0)
+        //            case .farenheit:
+        //                temperatureRow.setSelectedIndex(1)
+        //        }
+
+    }
+
+    @objc func setupButtonTapped() {
+        settings.save()
     }
 }

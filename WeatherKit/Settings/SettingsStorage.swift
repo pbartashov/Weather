@@ -45,34 +45,35 @@ struct SettingsStorage {
 //            .eraseToAnyPublisher()
 //    }
 
-    var temperatureUnitValueChanged: AnyPublisher<String, Never> {
+    var temperatureUnitValueChanged: AnyPublisher<Int, Never> {
         userDefaults
             .publisher(for: \.temperatureUnit, options: [.new])
             .removeDuplicates()
-            .compactMap{ $0 }
+            .compactMap{ $0 as? Int }
             .eraseToAnyPublisher()
     }
 
-    var velocityUnitValueChanged: AnyPublisher<String, Never> {
+    var velocityUnitValueChanged: AnyPublisher<Int, Never> {
         userDefaults
             .publisher(for: \.velocityUnit, options: [.new])
             .removeDuplicates()
-            .compactMap{ $0 }
+            .compactMap{ $0 as? Int }
             .eraseToAnyPublisher()
     }
 
-    var timeFormatValueChanged: AnyPublisher<String, Never> {
+    var timeFormatValueChanged: AnyPublisher<Int, Never> {
         userDefaults
             .publisher(for: \.timeFormat, options: [.new])
             .removeDuplicates()
-            .compactMap{ $0 }
+            .compactMap{ $0 as? Int }
             .eraseToAnyPublisher()
     }
 
-    var notificationsEnabledValueChanged: AnyPublisher<Bool, Never> {
+    var notificationsEnabledValueChanged: AnyPublisher<Int, Never> {
         userDefaults
             .publisher(for: \.notificationsEnabled, options: [.new])
             .removeDuplicates()
+            .compactMap{ $0 as? Int }
             .eraseToAnyPublisher()
     }
 
@@ -137,7 +138,7 @@ struct SettingsStorage {
     }
 
     func restoreTemperature() -> Settings.Temperature {
-        guard let saved = userDefaults.temperatureUnit else {
+        guard let saved = userDefaults.temperatureUnit as? Int else {
             return .defaultValue
         }
 
@@ -151,7 +152,7 @@ struct SettingsStorage {
 
 
     func restoreVelocity() -> Settings.Velocity {
-        guard let saved = userDefaults.velocityUnit else {
+        guard let saved = userDefaults.velocityUnit as? Int else {
             return .defaultValue
         }
 
@@ -165,7 +166,7 @@ struct SettingsStorage {
 
 
     func restoreTimeFormat() -> Settings.TimeFormat {
-        guard let saved = userDefaults.timeFormat else {
+        guard let saved = userDefaults.timeFormat as? Int else {
             return .defaultValue
         }
 
@@ -173,34 +174,42 @@ struct SettingsStorage {
     }
 
 
-    func save(_ notificationsEnabled: Bool) {
-        userDefaults.set(notificationsEnabled,
+    func save(_ notificationsEnabled: Settings.Notifications) {
+        userDefaults.set(notificationsEnabled.rawValue,
                          forKey: SettingsStorage.Key.notificationsEnabled)
     }
 
 
-    func restoreNotificationsEnabled() -> Bool {
-        userDefaults.notificationsEnabled
+    func restoreNotificationsEnabled() -> Settings.Notifications {
+        guard let saved = userDefaults.notificationsEnabled as? Int else {
+            return .defaultValue
+        }
+
+        return Settings.Notifications.init(saved)
     }
 
 }
 
 
 extension UserDefaults {
-    @objc var temperatureUnit: String? {
-        string(forKey: SettingsStorage.Key.temperatureUnits)
+    @objc var temperatureUnit: NSNumber? {
+        let integer = integer(forKey: SettingsStorage.Key.temperatureUnits)
+        return NSNumber(value: integer)
     }
 
-    @objc var velocityUnit: String? {
-        string(forKey: SettingsStorage.Key.velocityUnits)
+    @objc var velocityUnit: NSNumber? {
+        let integer = integer(forKey: SettingsStorage.Key.velocityUnits)
+        return NSNumber(value: integer)
     }
 
-    @objc var timeFormat: String? {
-        string(forKey: SettingsStorage.Key.timeFormat)
+    @objc var timeFormat: NSNumber? {
+        let integer = integer(forKey: SettingsStorage.Key.timeFormat)
+        return NSNumber(value: integer)
     }
 
-    @objc var notificationsEnabled: Bool {
-        bool(forKey: SettingsStorage.Key.notificationsEnabled)
+    @objc var notificationsEnabled: NSNumber? {
+        let integer = integer(forKey: SettingsStorage.Key.notificationsEnabled)
+        return NSNumber(value: integer)
     }
 
 

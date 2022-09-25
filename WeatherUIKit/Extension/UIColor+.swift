@@ -24,6 +24,10 @@ extension UIColor {
         getBrandColor(named: "DarkGrayColor")
     }
 
+    static var brandTextColor: UIColor {
+        getBrandColor(named: "TextColor")
+    }
+
 
     static func getBrandColor(named colorName: String) -> UIColor {
         guard let color = UIColor(named: colorName) else {
