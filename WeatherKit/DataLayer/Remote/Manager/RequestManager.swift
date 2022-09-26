@@ -41,6 +41,10 @@ public final class RequestManager: RequestManagerProtocol {
         //    let authToken = try await requestAccessToken()
         let data = try await apiManager.perform(request)
         let decoded: T = try parser.parse(data: data)
+
+
+        print(String(data: data, encoding: .utf8))
+
         return decoded
     }
 }

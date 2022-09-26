@@ -12,11 +12,38 @@ public protocol DataParserProtocol {
 }
 
 public final class DataParser: DataParserProtocol {
-    private var jsonDecoder: JSONDecoder
+    private let jsonDecoder: JSONDecoder
+//    private let dateFormatter: DateFormatter
 
-    public init(jsonDecoder: JSONDecoder = JSONDecoder()) {
+    public init(
+        jsonDecoder: JSONDecoder = JSONDecoder()
+//        dateFormatter: DateFormatter = DateFormatter()
+    ) {
+//        dateFormatter.dateFormat = "HH:mm"
+//        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+//        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
         self.jsonDecoder = jsonDecoder
-        self.jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+//        self.jsonDecoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
+////            guard let self = self else { return Date() }
+//
+//            // Parse the date using a custom `DateFormatter`
+//            let container = try decoder.singleValueContainer()
+//            let dateString = try container.decode(String.self)
+//            guard let date = dateFormatter.date(from: dateString) else { return Date() }
+//
+//            let midnightThen = Calendar.current.startOfDay(for: date)
+//            let millisecondsFromMidnight = date.timeIntervalSince(midnightThen)
+//
+//            let midnightToday = Calendar.current.startOfDay(for: Date())
+//            let normalizedDate = midnightToday.addingTimeInterval(millisecondsFromMidnight)
+//
+//            return normalizedDate
+//        })
+        //        self.jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+
+//        self.dateFormatter = dateFormatter
+
     }
 
     public func parse<T: Decodable>(data: Data) throws -> T {

@@ -8,12 +8,6 @@
 import UIKit
 import WeatherKit
 
-
-
-
-
-
-
 public final class MainViewController: UINavigationController {
 
     // MARK: - Properties
@@ -150,12 +144,7 @@ public final class MainViewController: UINavigationController {
 //
 //    }
 
-
-
     // MARK: - Metods
-
-
-
 
     private func setupNavigationBar() {
         let menu = UIBarButtonItem(image: UIImage(named: "MenuIcon"),

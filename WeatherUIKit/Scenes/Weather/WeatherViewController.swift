@@ -80,7 +80,7 @@ public final class WeatherViewController: UICollectionViewController {
 
 
 
-        view.backgroundColor = .yellow
+        view.backgroundColor = .white
 
         // Do any additional setup after loading the view.
 
@@ -122,8 +122,8 @@ public final class WeatherViewController: UICollectionViewController {
             switch section {
                 case .currentWeather:
                     // MARK: Promoted Section Layout
-                    let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                          heightDimension: .fractionalWidth(1))
+                    let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(344),
+                                                          heightDimension: .absolute(212))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
                     let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
@@ -147,6 +147,9 @@ public final class WeatherViewController: UICollectionViewController {
         collectionView.register(CurrentWeatherViewCell.self,
                                 forCellWithReuseIdentifier: CurrentWeatherViewCell.identifier)
 
+        collectionView.contentInsetAdjustmentBehavior = .never
+        collectionView.contentInset = .init(top: 112, left: 16, bottom: 0, right: 16)
+
         configureDataSource()
     }
 
@@ -167,7 +170,11 @@ public final class WeatherViewController: UICollectionViewController {
                         return nil
                     }
 
-                    cell.setup(with: currentWeather)
+                    cell.setup(with: currentWeather,
+                               timeFormatter: self.viewModel.timeFormatter,
+                               timestampFormatter: self.viewModel.timestampFormatter)
+                    
+                    cell.setupMinMaxTemperature(min: 100, max: 150)
 
                     return cell
 
@@ -192,6 +199,15 @@ public final class WeatherViewController: UICollectionViewController {
 
 //    private func bindTextFieldsToViewModel()
     private func bindViewModelToViews() {
+        func bindViewModelToErrors() {
+            viewModel.errorMessages
+                .receive(on: DispatchQueue.main)
+                .sink { error in
+                    ErrorPresenter.shared.show(error: error)
+                }
+                .store(in: &subscriptions)
+        }
+
         func bindViewModelToCurrentWeather() {
             viewModel
                 .$currentWeather
@@ -213,7 +229,8 @@ public final class WeatherViewController: UICollectionViewController {
                 }
                 .store(in: &subscriptions)
         }
-
+        
+        bindViewModelToErrors()
         bindViewModelToCurrentWeather()
 
 

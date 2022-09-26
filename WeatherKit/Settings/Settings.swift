@@ -66,6 +66,33 @@ public final class Settings {
 //        }
 //    }
 
+    public var temperatureSymbol: String {
+        switch temperature {
+            case .celcius:
+                return "°"
+
+            case .farenheit:
+                return "F"
+        }
+    }
+
+
+    public var velocitySymbol: String {
+        switch velocity {
+            case .miles:
+                return "mph"
+
+            case .kilometers:
+                return "м\\с"
+        }
+    }
+
+
+
+
+
+
+
     // MARK: - Views
 
     // MARK: - LifeCicle
