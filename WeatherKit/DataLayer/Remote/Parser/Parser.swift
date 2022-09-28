@@ -24,6 +24,7 @@ public final class DataParser: DataParserProtocol {
 //        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         
         self.jsonDecoder = jsonDecoder
+        self.jsonDecoder.dateDecodingStrategy = .secondsSince1970
 //        self.jsonDecoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
 ////            guard let self = self else { return Date() }
 //

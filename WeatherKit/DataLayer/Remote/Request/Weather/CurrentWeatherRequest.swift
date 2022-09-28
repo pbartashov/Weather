@@ -5,26 +5,43 @@
 //  Created by Павел Барташов on 17.09.2022.
 //
 
-enum CurrentWeatherRequest: RequestProtocol {
-    case getWeatherFor(latitude: Double, longitude: Double)
+enum WeatherRequest: RequestProtocol {
+    case getCurrentDayWeatherFor(latitude: Double, longitude: Double)
+//    case getWeatherFor7Days(latitude: Double, longitude: Double)
+//    case getWeatherFor15Days(latitude: Double, longitude: Double)
+
 
     var path: String {
-        "/v2.0/current"
+        let basePath = "/VisualCrossingWebServices/rest/services/timeline"
+        switch self {
+            case let .getCurrentDayWeatherFor(latitude, longitude):
+                return "\(basePath)/\(latitude),\(longitude)/today"
+
+        }
     }
 
-    var urlParams: [String: String?] {
-        switch self {
-            case let .getWeatherFor(latitude, longitude):
-//                var params = ["page": String(page)]
-//
-//                urlParams["lat"] = String(latitude)
-//                urlParams["lon"] = String(longitude)
+//https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/vladivostok/today?unitGroup=us&include=current%2Chours&key=YQ8FCBUW53CPXSWQKMQVPLFZY&contentType=json
 
-                return [
-                    "lat": String(latitude),
-                    "lon": String(longitude)
-                ]
+    var urlParams: [String: String?] {
+        var urlParams = ["key": APIConstants.clientId,
+                         "lang": APIConstants.language]
+
+        switch self {
+            case .getCurrentDayWeatherFor:
+                //                var params = ["page": String(page)]
+                //
+                //                urlParams["lat"] = String(latitude)
+                //                urlParams["lon"] = String(longitude)
+                urlParams["include"] = "current,hours"
+
+                //                return urlParams[
+                //                    "lat": String(latitude),
+                //                    "lon": String(longitude)
+                //                ]
+
         }
+
+        return urlParams
     }
 
     var requestType: RequestType {

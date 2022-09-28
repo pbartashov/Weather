@@ -8,11 +8,11 @@
 import WeatherKit
 
 enum Item: Hashable {
-    case currentWeather(CurrentWeather)
-    case hourWeather(HourWeather)
-    case dayWeather(DayWeather)
+    case currentWeather(Weather)
+    case hourWeather(HourlyWeather)
+    case dayWeather(DailyWeather)
 
-    var currentWeather: CurrentWeather? {
+    var currentWeather: Weather? {
         if case .currentWeather(let currentWeather) = self {
             return currentWeather
         } else {
@@ -20,7 +20,7 @@ enum Item: Hashable {
         }
     }
 
-    var hourWeather: HourWeather? {
+    var hourWeather: HourlyWeather? {
         if case .hourWeather(let hourWeather) = self {
             return hourWeather
         } else {
@@ -28,7 +28,7 @@ enum Item: Hashable {
         }
     }
 
-    var dayWeather: DayWeather? {
+    var dayWeather: DailyWeather? {
         if case .dayWeather(let dayWeather) = self {
             return dayWeather
         } else {

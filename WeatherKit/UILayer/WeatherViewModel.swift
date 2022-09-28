@@ -28,7 +28,7 @@ public final class WeatherViewModel {
 
 
     public let location: WeatherLocation
-    @Published public var currentWeather: CurrentWeather?
+    @Published public var currentWeather: Weather?
 
 
     public var errorMessages: AnyPublisher<Error, Never> {
@@ -95,10 +95,10 @@ public final class WeatherViewModel {
         //                         longitude: Double
     ) async {
         do {
-            currentWeather = try await weatherRepository.fetchCurrentWeather(location: location)
+//            currentWeather = try await weatherRepository.fetchCurrentDayWeather(location: location)
             configureDateFormatters(format: Settings.shared.timeFormat)
             print(currentWeather)
-            print(currentWeather?.sunset)
+            print(currentWeather?.sunsetEpoch)
             //            for var animal in animalsContainer.animals {
             //                animal.toManagedObject()
             //            }
@@ -123,14 +123,14 @@ public final class WeatherViewModel {
 //              let timezone = currentWeather.timezone
         else { return }
 
-        timeFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
-        timestampFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
+//        timeFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
+//        timestampFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
     }
 
 
 }
 
-extension CurrentWeather {
+extension Weather {
     public var tempFormatted: String? {
 //        guard let temp = temp else { return nil }
 
@@ -140,19 +140,19 @@ extension CurrentWeather {
     public var cloudsFormatted: String? {
 //        guard let clouds = clouds else { return nil }
 
-        return "\(clouds)"
+        return "\(cloudcover)"
     }
 
-    public var humidity: String? {
+    public var humidityFormatted: String? {
 //        guard let rh = rh else { return nil }
 
-        return "\(String(format: "%.0f", rh))%"
+        return "\(String(format: "%.0f", humidity))%"
     }
 
     public var windSpeedFormatted: String? {
 //        guard let windSpd = windSpd else { return nil }
 
-        return "\(String(format: "%.0f", windSpd)) \(Settings.shared.velocitySymbol)"
+        return "\(String(format: "%.0f", windspeed)) \(Settings.shared.velocitySymbol)"
     }
 
 //    public var sunriseFormatted: String? {

@@ -240,15 +240,15 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
         }
     }
 
-    func setup(with weather: CurrentWeather,
+    func setup(with weather: Weather,
                timeFormatter: DateFormatter,
                timestampFormatter: DateFormatter) {
 
         temperatureLabel.text = weather.tempFormatted
-        descriptionLabel.text = weather.weather.weatherDescription
+//        descriptionLabel.text = weather.weather.weatherDescription
 
         cloudsView.text = weather.cloudsFormatted
-        humidityView.text = weather.humidity
+//        humidityView.text = weather.humidity
         windSpeedView.text = weather.windSpeedFormatted
 
 //        if let sunrise = weather.sunrise {
@@ -256,18 +256,18 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
 
 
 
-            sunriseLabel.text = timeFormatter.string(from: weather.sunrise)
+            sunriseLabel.text = timeFormatter.string(from: weather.sunriseEpoch)
 //        } else {
 //            sunriseLabel.text = nil
 //        }
 
 //        if let sunset = weather.sunset {
-        sunsetLabel.text = timeFormatter.string(from: weather.sunset)
+        sunsetLabel.text = timeFormatter.string(from: weather.sunsetEpoch)
 //        } else {
 //            sunsetLabel.text = nil
 //        }
 
-        timestampLabel.text = timestampFormatter.string(from: weather.obTime)
+        timestampLabel.text = timestampFormatter.string(from: weather.datetimeEpoch)
 
 
 

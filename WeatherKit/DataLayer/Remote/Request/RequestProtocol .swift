@@ -22,9 +22,9 @@ extension RequestProtocol {
         APIConstants.host
     }
 
-    var addAuthorizationToken: Bool {
-        true
-    }
+//    var addAuthorizationToken: Bool {
+//        true
+//    }
 
     var params: [String: Any] {
         [:]
@@ -44,9 +44,12 @@ extension RequestProtocol {
         components.host = host
         components.path = path
 
+
+        
+
         var queryItems = urlParams.map { URLQueryItem(name: $0, value: $1) }
-        queryItems.append(URLQueryItem(name: "key", value: APIConstants.clientId))
-        queryItems.append(URLQueryItem(name: "lang", value: APIConstants.language))
+//        queryItems.append(URLQueryItem(name: "key", value: APIConstants.clientId))
+//        queryItems.append(URLQueryItem(name: "lang", value: APIConstants.language))
         components.queryItems = queryItems
 
         guard let url = components.url else { throw  NetworkError.invalidURL }
@@ -68,6 +71,8 @@ extension RequestProtocol {
             urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params)
         }
 
+
+        print(urlRequest.url)
         return urlRequest
     }
 }

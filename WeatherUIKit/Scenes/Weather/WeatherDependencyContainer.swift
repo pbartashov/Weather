@@ -10,6 +10,8 @@ import WeatherKit
 public final class WeatherDependencyContainer {
 
     // MARK: - Properties
+    let contextProvider: CoreDataContextProvider
+
 
 
     //    // From parent container
@@ -30,7 +32,8 @@ public final class WeatherDependencyContainer {
 
     // MARK: - LifeCicle
 
-    public init() {
+    public init(contextProvider: CoreDataContextProvider) {
+        self.contextProvider = contextProvider
         //        func makeWeartherViewModel() -> WeatherViewModel {
         //            WeatherViewModel()
         //        }
@@ -58,7 +61,7 @@ public final class WeatherDependencyContainer {
     }
 
     func makeWeartherViewModel(for location: WeatherLocation) -> WeatherViewModel {
-        let reposirory = WeatherRepository()
-        return WeatherViewModel(location: location, weatherRepository: reposirory)
+        let repository = WeatherRepository(context: contextProvider.backgroundContext)
+        return WeatherViewModel(location: location, weatherRepository: repository)
     }
 }

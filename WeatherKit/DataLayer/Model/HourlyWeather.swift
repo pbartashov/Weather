@@ -1,10 +1,10 @@
 //
-//  HourWeather.swift
+//  HourlyWeather.swift
 //  WeatherKit
 //
 //  Created by Павел Барташов on 24.09.2022.
 //
 
-public struct HourWeather: Hashable {
+public struct HourlyWeather: Hashable {
     
 }

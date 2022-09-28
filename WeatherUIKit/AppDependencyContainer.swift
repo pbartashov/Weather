@@ -8,7 +8,7 @@
 import WeatherKit
 
 public class AppDependencyContainer {
-
+    let contextProvider: CoreDataContextProvider
     // MARK: - Properties
 
     //
@@ -31,13 +31,14 @@ public class AppDependencyContainer {
 
     // MARK: - LifeCicle
 
-    public init() {
+    public init(contextProvider: CoreDataContextProvider = CoreDataContextProvider.shared) {
         func makeMainViewModel() -> MainViewModel {
             MainViewModel()
         }
 
-
+        self.contextProvider = contextProvider
         self.sharedMainViewModel = makeMainViewModel()
+
 
 
     }
@@ -67,7 +68,7 @@ public class AppDependencyContainer {
 
     public func makeWeartherViewController(for index: Int) -> WeatherViewController {
         let location = sharedMainViewModel.locations[index]
-        let dependencyContainer = WeatherDependencyContainer()
+        let dependencyContainer = WeatherDependencyContainer(contextProvider: contextProvider)
         return dependencyContainer.makeWeatherViewController(for: location)
     }
 
