@@ -6,6 +6,7 @@
 //
 
 import WeatherKit
+import UIKit
 
 public class AppDependencyContainer {
     let contextProvider: CoreDataContextProvider
@@ -60,16 +61,31 @@ public class AppDependencyContainer {
             return self.makeWeartherViewController(for: index)
         }
 
+        let settingsViewControllerFactory = {
+            return self.makeSettingsViewController()
+        }
+
         return MainViewController(viewModel: sharedMainViewModel,
-                                  weatherViewControllerFactory: weatherViewControllerFactory)
+                                  weatherViewControllerFactory: weatherViewControllerFactory,
+                                  settingsViewControllerFactory: settingsViewControllerFactory)
+    }
+
+    public func makeRootViewController() -> UIViewController {
+        let mainViewController = makeMainViewController()
+        return UINavigationController(rootViewController: mainViewController)
     }
 
 
 
-    public func makeWeartherViewController(for index: Int) -> WeatherViewController {
+    public func makeWeartherViewController(for index: Int) -> WeathersViewController {
         let location = sharedMainViewModel.locations[index]
         let dependencyContainer = WeatherDependencyContainer(contextProvider: contextProvider)
         return dependencyContainer.makeWeatherViewController(for: location)
+    }
+
+    public func makeSettingsViewController() -> SettingsViewController {
+        let dependencyContainer = SettingsDependencyContainer()
+        return dependencyContainer.makeSettingsViewController()
     }
 
 

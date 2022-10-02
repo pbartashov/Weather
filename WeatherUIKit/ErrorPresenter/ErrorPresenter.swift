@@ -55,6 +55,9 @@ public final class ErrorPresenter {
                 alert.addAction(cancelAction)
 
                 self?.presenter?.present(alert, animated: true)
+
+
+                print(error)
             }
         }
     }

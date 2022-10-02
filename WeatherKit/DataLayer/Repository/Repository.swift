@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 //https://www.userdesk.io/blog/repository-pattern-using-core-data-and-swift/
 protocol Repository {
@@ -29,11 +30,17 @@ protocol Repository {
     func saveChanges() async throws
 
     /// Automatic fetching results.
-    var fetchResults: [Entity] { get }
+//    var fetchResults: [Entity] { get }
 
+//    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> { get }
+//    var fetchedResultsPublisher: AnyPublisher<[[Entity]], Never> { get }
+    var fetchedResultsPublisher: AnyPublisher<[Entity], Never> { get }
     /// Sets up a FetchResultService with stateChanged handler.
-    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
+//    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
 
     /// Starts fetching with given NSPredicate and array of NSSortDescriptors.
-    func startFetchingWith(predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?) throws
+    func startFetchingWith(predicate: NSPredicate?,
+                           sortDescriptors: [NSSortDescriptor]?,
+                           sectionNameKeyPath: String?) throws
+//    func startFetchingWeather() throws
 }

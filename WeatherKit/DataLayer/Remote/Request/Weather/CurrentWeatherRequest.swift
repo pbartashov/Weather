@@ -24,7 +24,8 @@ enum WeatherRequest: RequestProtocol {
 
     var urlParams: [String: String?] {
         var urlParams = ["key": APIConstants.clientId,
-                         "lang": APIConstants.language]
+                         "lang": APIConstants.language,
+                         "unitGroup": "metric"]
 
         switch self {
             case .getCurrentDayWeatherFor:

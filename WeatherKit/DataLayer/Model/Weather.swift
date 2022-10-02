@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - WeatherContainer
-public struct WeatherContainer: Codable {
+public struct WeatherContainer: Decodable {
 //    let queryCost: Int?
     let latitude, longitude: Double
 //    let resolvedAddress, address
@@ -20,10 +20,16 @@ public struct WeatherContainer: Codable {
 }
 
 // MARK: - Weather
-public struct Weather: Codable {
+public struct Weather {
+
+
     public var weatherType: WeatherType = .none
     public var longitude: Double = 0.0
     public var latitude: Double = 0.0
+//    public var weatherType: WeatherType
+//    public var longitude: Double
+//    public var latitude: Double
+
     //    var lat: Int?
 //    public var latitude: Double? {
 //        get {
@@ -68,6 +74,47 @@ public struct Weather: Codable {
     public let conditions: String
     public let hours: [Weather]?
 
+
+//    public init(weatherType: WeatherType = .none,
+//                  longitude: Double = 0.0,
+//                  latitude: Double = 0.0,
+//                  humidity: Double, cloudcover: Double,
+//                  windspeed: Double,
+//                  sunriseEpoch: Date,
+//                  sunsetEpoch: Date,
+//                  datetimeEpoch: Date,
+//                  temp: Double,
+//                  tempmax: Double,
+//                  tempmin: Double,
+//                  conditions: String,
+//                  hours: [Weather]?) {
+//
+//        self.weatherType = weatherType
+//        self.longitude = longitude
+//        self.latitude = latitude
+//        self.humidity = humidity
+//        self.cloudcover = cloudcover
+//        self.windspeed = windspeed
+//        self.sunriseEpoch = sunriseEpoch
+//        self.sunsetEpoch = sunsetEpoch
+//        self.datetimeEpoch = datetimeEpoch
+//        self.temp = temp
+//        self.tempmax = tempmax
+//        self.tempmin = tempmin
+//        self.conditions = conditions
+//        self.hours = hours
+//    }
+
+    enum CodingKeys: String, CodingKey {
+        case humidity
+        case cloudcover
+        case windspeed
+        case sunrise, sunset, datetime
+        case temp, tempmax, tempmin
+        case conditions
+        case hours
+    }
+
 //    enum CodingKeys: String, CodingKey {
 ////        case weatherDescription = "description"
 //        case hours, humidity, cloudcover, windspeed
@@ -88,6 +135,55 @@ public struct Weather: Codable {
 
 extension Weather: Hashable { }
 
+extension Weather {
+    func filledWith(weatherType: WeatherType,
+                       longitude: Double,
+                       latitude: Double) -> Weather {
+
+        Weather(weatherType: weatherType,
+                longitude: longitude,
+                latitude: latitude,
+                humidity: humidity,
+                cloudcover: cloudcover,
+                windspeed: windspeed,
+                sunriseEpoch: sunriseEpoch,
+                sunsetEpoch: sunsetEpoch,
+                datetimeEpoch: datetimeEpoch,
+                temp: temp,
+                tempmax: tempmax,
+                tempmin: tempmin,
+                conditions: conditions,
+                hours: hours)
+//
+//        self.weatherType = weatherType
+//        self.longitude = longitude
+//        self.latitude = latitude
+
+//        return self
+    }
+}
+
+extension Weather: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        humidity = try container.decodeIfPresent(Double.self, forKey: .humidity) ?? 0.0
+        cloudcover = try container.decodeIfPresent(Double.self, forKey: .cloudcover) ?? 0.0
+        windspeed = try container.decodeIfPresent(Double.self, forKey: .windspeed) ?? 0.0
+        temp = try container.decodeIfPresent(Double.self, forKey: .temp) ?? 0.0
+        tempmax = try container.decodeIfPresent(Double.self, forKey: .tempmax) ?? 0.0
+        tempmin = try container.decodeIfPresent(Double.self, forKey: .tempmin) ?? 0.0
+
+        conditions = try container.decodeIfPresent(String.self, forKey: .conditions) ?? ""
+
+//        let s = try container.decodeIfPresent(String.self, forKey: .sunsetEpoch)
+        sunriseEpoch = try container.decodeIfPresent(Date.self, forKey: .sunrise) ?? Date(timeIntervalSince1970: 0)
+        sunsetEpoch = try container.decodeIfPresent(Date.self, forKey: .sunset) ?? Date(timeIntervalSince1970: 0)
+//        datetimeEpoch = try container.decodeIfPresent(Date.self, forKey: .datetime) ?? Date(timeIntervalSince1970: 0)
+        datetimeEpoch = Date()
+        hours =  try container.decodeIfPresent([Weather].self, forKey: .hours) ?? []
+    }
+}
 //extension Weather: Decodable {
 //    public init(from decoder: Decoder) throws {
 //        let container = try decoder.container( keyedBy: CodingKeys.self)

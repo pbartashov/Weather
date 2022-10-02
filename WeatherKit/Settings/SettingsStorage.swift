@@ -12,15 +12,15 @@ struct SettingsStorage {
 
     enum Key {
         static let temperatureUnits = "com.weather.settings.temperatureUnits"
-        static let velocityUnits = "com.weather.settings.velocityUnits"
+        static let speedUnits = "com.weather.settings.speedUnits"
         static let timeFormat = "com.weather.settings.timeFormat"
         static let notificationsEnabled = "com.weather.settings.notificationsEnabled"
 //        static let keyTemperature = "com.weather.settings.temperature"
-//        static let keyVelocity = "com.weather.settings.velocity"
+//        static let keySpeed = "com.weather.settings.speed"
 //        static let keyTimeFormat = "com.weather.settings.timeFormat"
 //        static let keyNotificationsEnabled = "com.weather.settings.notificationsEnabled"
 //        case temperature = "com.weather.settings.temperature"
-//        case velocity = "com.weather.settings.velocity"
+//        case speed = "com.weather.settings.speed"
 //        case timeFormat = "com.weather.settings.timeFormat"
 //        case notificationsEnabled = "com.weather.settings.notificationsEnabled"
     }
@@ -53,9 +53,9 @@ struct SettingsStorage {
             .eraseToAnyPublisher()
     }
 
-    var velocityUnitValueChanged: AnyPublisher<Int, Never> {
+    var speedUnitValueChanged: AnyPublisher<Int, Never> {
         userDefaults
-            .publisher(for: \.velocityUnit, options: [.new])
+            .publisher(for: \.speedUnit, options: [.new])
             .removeDuplicates()
             .compactMap{ $0 as? Int }
             .eraseToAnyPublisher()
@@ -93,18 +93,18 @@ struct SettingsStorage {
 //        return Settings.Temperature.init(saved)
 //    }
 //
-//    func save(_ velocity: Settings.Velocity) {
-//        userDefaults.set(velocity.rawValue,
-//                         forKey: Constants.keyVelocity)
+//    func save(_ speed: Settings.Speed) {
+//        userDefaults.set(speed.rawValue,
+//                         forKey: Constants.keySpeed)
 //    }
 //
 //
-//    func restoreVelocity() -> Settings.Velocity {
-//        guard let saved = userDefaults.object(forKey: Constants.keyVelocity) as? String else {
+//    func restoreSpeed() -> Settings.Speed {
+//        guard let saved = userDefaults.object(forKey: Constants.keySpeed) as? String else {
 //            return .defaultValue
 //        }
 //
-//        return Settings.Velocity.init(saved)
+//        return Settings.Speed.init(saved)
 //    }
 //
 //    func save(_ timeFormat: Settings.TimeFormat) {
@@ -145,18 +145,18 @@ struct SettingsStorage {
         return Settings.Temperature.init(saved)
     }
 
-    func save(_ velocity: Settings.Velocity) {
-        userDefaults.set(velocity.rawValue,
-                         forKey: SettingsStorage.Key.velocityUnits)
+    func save(_ speed: Settings.Speed) {
+        userDefaults.set(speed.rawValue,
+                         forKey: SettingsStorage.Key.speedUnits)
     }
 
 
-    func restoreVelocity() -> Settings.Velocity {
-        guard let saved = userDefaults.velocityUnit as? Int else {
+    func restoreSpeed() -> Settings.Speed {
+        guard let saved = userDefaults.speedUnit as? Int else {
             return .defaultValue
         }
 
-        return Settings.Velocity.init(saved)
+        return Settings.Speed.init(saved)
     }
 
     func save(_ timeFormat: Settings.TimeFormat) {
@@ -197,8 +197,8 @@ extension UserDefaults {
         return NSNumber(value: integer)
     }
 
-    @objc var velocityUnit: NSNumber? {
-        let integer = integer(forKey: SettingsStorage.Key.velocityUnits)
+    @objc var speedUnit: NSNumber? {
+        let integer = integer(forKey: SettingsStorage.Key.speedUnits)
         return NSNumber(value: integer)
     }
 

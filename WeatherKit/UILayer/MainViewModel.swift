@@ -12,8 +12,8 @@ public final class MainViewModel {
     // MARK: - Properties
 
     public var locations = [WeatherLocation(index: 0, cityName: "London", latitude: 30, longitude: 60),
-                             WeatherLocation(index: 1, cityName: "Vladivostok", latitude: 30, longitude: 60),
-                             WeatherLocation(index: 2, cityName: "San Diego", latitude: 30, longitude: 60)
+                             WeatherLocation(index: 1, cityName: "Vladivostok", latitude: 50, longitude: 90),
+                             WeatherLocation(index: 2, cityName: "San Diego", latitude: 100, longitude: 35)
     ]
 
     public var errorMessages: AnyPublisher<Error, Never> {

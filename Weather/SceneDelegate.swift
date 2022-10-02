@@ -21,13 +21,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let window = UIWindow(windowScene: windowScene)
 
-        let mainViewController = injectionContainer.makeMainViewController()
+        let rootViewController = injectionContainer.makeRootViewController()
 
-        window.rootViewController = mainViewController
+        window.rootViewController = rootViewController
         window.makeKeyAndVisible()
         self.window = window
 
-        ErrorPresenter.shared.initialize(with: mainViewController)
+        ErrorPresenter.shared.initialize(with: rootViewController)
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

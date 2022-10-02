@@ -12,6 +12,8 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
 
     // MARK: - Properties
 
+//    var formatter: WeartherFormatterProtocol?
+
     // MARK: - Views
 
     private let arcView: UIImageView = {
@@ -240,41 +242,56 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
         }
     }
 
-    func setup(with weather: Weather,
-               timeFormatter: DateFormatter,
-               timestampFormatter: DateFormatter) {
+    func setup(with weather: WeatherViewModel) {
+//               formatter: WeartherFormatterProtocol) {
+//               timeFormatter: DateFormatter,
+//               timestampFormatter: DateFormatter) {
 
-        temperatureLabel.text = weather.tempFormatted
-//        descriptionLabel.text = weather.weather.weatherDescription
+        temperatureLabel.text = weather.temp
+        descriptionLabel.text = weather.conditions
+        cloudsView.text = weather.cloudcover
+        windSpeedView.text = weather.windspeed
+        humidityView.text = weather.humidity
+        sunriseLabel.text = weather.sunriseEpoch
+        sunsetLabel.text = weather.sunsetEpoch
+        timestampLabel.text = weather.datetimeEpoch
 
-        cloudsView.text = weather.cloudsFormatted
-//        humidityView.text = weather.humidity
-        windSpeedView.text = weather.windSpeedFormatted
-
-//        if let sunrise = weather.sunrise {
-//        let date = dateFormatter.date(from: weather.sunrise)
-
-
-
-            sunriseLabel.text = timeFormatter.string(from: weather.sunriseEpoch)
-//        } else {
-//            sunriseLabel.text = nil
-//        }
-
-//        if let sunset = weather.sunset {
-        sunsetLabel.text = timeFormatter.string(from: weather.sunsetEpoch)
-//        } else {
-//            sunsetLabel.text = nil
-//        }
-
-        timestampLabel.text = timestampFormatter.string(from: weather.datetimeEpoch)
-
+    //        temperatureLabel.text = formatter.format(temperature: weather.temp)
+////        temperatureLabel.text = weather.tempFormatted
+//        descriptionLabel.text = weather.conditions
+//
+//        cloudsView.text = formatter.format(cloudcover: weather.cloudcover)
+////        cloudsView.text = weather.cloudsFormatted
+//        windSpeedView.text = formatter.format(speed: weather.windspeed)
+////        windSpeedView.text = weather.windSpeedFormatted
+//        humidityView.text = formatter.format(humidity: weather.humidity)
+//
+////        if let sunrise = weather.sunrise {
+////        let date = dateFormatter.date(from: weather.sunrise)
+//
+//
+//        sunriseLabel.text = formatter.format(time: weather.sunriseEpoch)
+////            sunriseLabel.text = timeFormatter.string(from: weather.sunriseEpoch)
+////        } else {
+////            sunriseLabel.text = nil
+////        }
+//
+////        if let sunset = weather.sunset {
+//        sunsetLabel.text = formatter.format(time: weather.sunsetEpoch)
+////        sunsetLabel.text = timeFormatter.string(from: weather.sunsetEpoch)
+////        } else {
+////            sunsetLabel.text = nil
+////        }
+//
+//        timestampLabel.text = formatter.format(dateTime: weather.datetimeEpoch)
+////        timestampLabel.text = timestampFormatter.string(from: weather.datetimeEpoch)
+//
 
 
     }
 
-    func setupMinMaxTemperature(min: Int, max: Int) {
-        let symbol = Settings.shared.temperatureSymbol
-        minMaxTemperatureLabel.text = "\(min)\(symbol)/ \(max)\(symbol)"
-    }
+//    func setupMinMaxTemperature(min: Int, max: Int) {
+//        let symbol = Settings.shared.temperatureSymbol
+//        minMaxTemperatureLabel.text = "\(min)\(symbol)/ \(max)\(symbol)"
+//    }
 }

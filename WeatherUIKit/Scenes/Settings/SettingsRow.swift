@@ -6,10 +6,20 @@
 //
 
 import UIKit
+import WeatherKit
 
-final class SettingsRow: UIView {
+protocol SettingsRawRepresentable {
+    var title: String { get }
+}
+
+
+final class SettingsRow<T: Equatable&SettingsRawRepresentable>: UIView {
 
     // MARK: - Properties
+    private let values: [T]
+
+    var currentValue: T?
+
 
     // MARK: - Views
 
@@ -32,7 +42,7 @@ final class SettingsRow: UIView {
                                         for: .selected)
         selector.setTitleTextAttributes([.font: font], for: .normal)
 
-        selector.selectedSegmentTintColor = UIColor(red: 31 / 255, green: 77 / 255, blue: 197 / 255, alpha: 1)
+         selector.selectedSegmentTintColor = UIColor(red: 31 / 255, green: 77 / 255, blue: 197 / 255, alpha: 1)
 
         return selector
     }()
@@ -40,17 +50,35 @@ final class SettingsRow: UIView {
     // MARK: - LifeCicle
 
     init(title: String,
-         actions: [UIAction]) {
+         values: [T]) {
+//         actions: [UIAction]) {
+        self.values = values
 
         super.init(frame: .zero)
 
         titleLabel.text = title
+//
+//        if !values.isEmpty {
+//            currentValue = values
+//
+//        }
+//        actions.enumerated().forEach { (index, action) in
+//            self.selector.insertSegment(action: action, at: index, animated: false)
+//        }
 
-        actions.enumerated().forEach { (index, action) in
-            self.selector.insertSegment(action: action, at: index, animated: false)
+        values.enumerated().forEach { (index, value) in
+            let action = UIAction(title: value.title) { [weak self] _ in
+                guard let self = self else { return }
+                self.currentValue = self.values[self.selector.selectedSegmentIndex]
+            }
+            selector.insertSegment(action: action, at: index, animated: false)
         }
 
         initialize()
+
+//        defer {
+//            selector.addTarget(SettingsRow<T>.self, action: #selector(selected), for: .valueChanged)
+//        }
     }
 
     required init?(coder: NSCoder) {
@@ -82,7 +110,64 @@ final class SettingsRow: UIView {
         }
     }
 
-    func setSelectedIndex(_ index: Int) {
-        selector.selectedSegmentIndex = index
+    func setSelected(value: T) {
+        if let index = values.firstIndex(of: value) {
+            selector.selectedSegmentIndex = index
+        }
+    }
+//
+//    @objc func selected() {
+//        currentValue = values[selector.selectedSegmentIndex]
+//    }
+
+//    func setSelectedIndex(_ index: Int) {
+//        selector.selectedSegmentIndex = index
+//    }
+}
+
+
+
+extension Settings.Temperature: SettingsRawRepresentable {
+    var title: String {
+        switch self {
+            case .celcius:
+                return "C"
+            case .farenheit:
+                return "F"
+        }
     }
 }
+
+extension Settings.Speed: SettingsRawRepresentable {
+    var title: String {
+        switch self {
+            case .miles:
+                return "Mi"
+            case .kilometers:
+                return "Km"
+        }
+    }
+}
+
+extension Settings.TimeFormat: SettingsRawRepresentable {
+    var title: String {
+        switch self {
+            case .format12:
+                return "12"
+            case .format24:
+                return "24"
+        }
+    }
+}
+
+extension Settings.Notifications: SettingsRawRepresentable {
+    var title: String {
+        switch self {
+            case .enabled:
+                return "On"
+            case .disabled:
+                return "Off"
+        }
+    }
+}
+

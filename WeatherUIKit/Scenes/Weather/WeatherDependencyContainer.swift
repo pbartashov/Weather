@@ -44,7 +44,7 @@ public final class WeatherDependencyContainer {
 
     // MARK: - Metods
 
-    public func makeWeatherViewController(for location: WeatherLocation) -> WeatherViewController {
+    public func makeWeatherViewController(for location: WeatherLocation) -> WeathersViewController {
         //        let launchViewController = makeLaunchViewController()
         //
         //        let onboardingViewControllerFactory = {
@@ -57,11 +57,12 @@ public final class WeatherDependencyContainer {
 
         let viewModel = makeWeartherViewModel(for: location)
 
-        return WeatherViewController(viewModel: viewModel)
+        return WeathersViewController(viewModel: viewModel)
+//                                     weatherFormatter: viewModel)
     }
 
-    func makeWeartherViewModel(for location: WeatherLocation) -> WeatherViewModel {
+    func makeWeartherViewModel(for location: WeatherLocation) -> WeathersViewModel {
         let repository = WeatherRepository(context: contextProvider.backgroundContext)
-        return WeatherViewModel(location: location, weatherRepository: repository)
+        return WeathersViewModel(location: location, weatherRepository: repository)
     }
 }

@@ -19,12 +19,15 @@ public final class DataParser: DataParserProtocol {
         jsonDecoder: JSONDecoder = JSONDecoder()
 //        dateFormatter: DateFormatter = DateFormatter()
     ) {
-//        dateFormatter.dateFormat = "HH:mm"
-//        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        dateFormatter.timeZone = TimeZone(identifier: "GMT")
 //        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         
         self.jsonDecoder = jsonDecoder
-        self.jsonDecoder.dateDecodingStrategy = .secondsSince1970
+        self.jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
+//        self.jsonDecoder.dateDecodingStrategy = .secondsSince1970
+        
 //        self.jsonDecoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
 ////            guard let self = self else { return Date() }
 //

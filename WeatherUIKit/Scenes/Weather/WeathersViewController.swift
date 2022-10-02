@@ -9,35 +9,45 @@ import UIKit
 import WeatherKit
 import Combine
 
-public final class WeatherViewController: UICollectionViewController {
+public final class WeathersViewController: UICollectionViewController {
 
     // MARK: Section Definitions
     enum Section: Hashable {
-        case currentWeather
-        case hourWeather
-        case dayWeather
+        case currentWeatherSection
+        case hourWeatherSection
+        case dayWeatherSection
     }
 
     // MARK: - Properties
 
-    let viewModel: WeatherViewModel
+    let viewModel: WeathersViewModel
+    //    var formatter: WeartherFormatterProtocol
+
     private var subscriptions = Set<AnyCancellable>()
     
     public var locationID: Int {
         viewModel.location.index
     }
 
-    var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
+    private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
 
-    var sections = [Section]()
+    private var sections = [Section]()
+
+//    @Published private var currentWeatherItem: Item
+
 
 
     // MARK: - Views
 
     // MARK: - LifeCicle
 
-    init(viewModel: WeatherViewModel) {
+    init(viewModel: WeathersViewModel
+         //         weatherFormatter: WeartherFormatterProtocol
+    ) {
+
         self.viewModel = viewModel
+        //        self.formatter = weatherFormatter
+
         super.init(nibName: nil, bundle: nil)
 
         //        collectionView = UICollectionView(frame: .zero, collectionViewLayout: createBasicListLayout())
@@ -80,7 +90,7 @@ public final class WeatherViewController: UICollectionViewController {
 
 
 
-        view.backgroundColor = .white
+        //        view.backgroundColor = .white
 
         // Do any additional setup after loading the view.
 
@@ -97,8 +107,9 @@ public final class WeatherViewController: UICollectionViewController {
         //        }
         //
 
-//        bindTextFieldsToViewModel()
+        //        bindTextFieldsToViewModel()
         bindViewModelToViews()
+//        bindSettings()
 
 
         Task {
@@ -120,17 +131,36 @@ public final class WeatherViewController: UICollectionViewController {
 
             let section = self.sections[sectionIndex]
             switch section {
-                case .currentWeather:
+                case .currentWeatherSection:
                     // MARK: Promoted Section Layout
                     let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(344),
                                                           heightDimension: .absolute(212))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
                     let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
-                                                           heightDimension: .estimated(300))
+                                                           heightDimension: .estimated(212))
+
+                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                                   subitem: item,
+                                                                   count: 1)
+                    let section = NSCollectionLayoutSection(group: group)
+                    section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+
+                    return section
+
+                case .hourWeatherSection:
+                    let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(42),
+                                                          heightDimension: .absolute(84))
+                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
+                                                           heightDimension: .estimated(250))
+                    
                     let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
                                                                    subitems: [item])
+                    
                     let section = NSCollectionLayoutSection(group: group)
+                    section.orthogonalScrollingBehavior = .groupPagingCentered
 
                     return section
 
@@ -147,6 +177,10 @@ public final class WeatherViewController: UICollectionViewController {
         collectionView.register(CurrentWeatherViewCell.self,
                                 forCellWithReuseIdentifier: CurrentWeatherViewCell.identifier)
 
+        collectionView.register(HourlyWeatherViewCell.self,
+                                forCellWithReuseIdentifier: HourlyWeatherViewCell.identifier)
+
+
         collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.contentInset = .init(top: 112, left: 16, bottom: 0, right: 16)
 
@@ -160,24 +194,43 @@ public final class WeatherViewController: UICollectionViewController {
             guard let self = self else { return nil }
             let section = self.sections[indexPath.section]
             switch section {
-                case .currentWeather:
+                case .currentWeatherSection:
                     guard
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CurrentWeatherViewCell.identifier,
                                                                       for: indexPath)
                             as? CurrentWeatherViewCell,
-                        let currentWeather = self.viewModel.currentWeather
+                        case .currentWeatherItem(let currentWeather) = item
+                            //                        let currentWeather = self.viewModel.currentWeather
                     else {
                         return nil
                     }
 
-                    cell.setup(with: currentWeather,
-                               timeFormatter: self.viewModel.timeFormatter,
-                               timestampFormatter: self.viewModel.timestampFormatter)
+                    //                    if cell.formatter == nil {
+                    //                        cell.formatter = formatter
+                    //                    }
+
+                    cell.setup(with: currentWeather)
+                    //                               formatter: self.formatter)
+                    //                               timeFormatter: self.viewModel.timeFormatter,
+                    //                               timestampFormatter: self.viewModel.datetimeFormatter)
                     
-                    cell.setupMinMaxTemperature(min: 100, max: 150)
+                    //                    cell.setupMinMaxTemperature(min: 100, max: 150)
 
                     return cell
 
+                case .hourWeatherSection:
+                    guard
+                        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HourlyWeatherViewCell.identifier,
+                                                                      for: indexPath)
+                            as? HourlyWeatherViewCell,
+                        case .hourlyWeatherItem(let hourlyWeatherItem) = item
+                    else {
+                        return nil
+                    }
+
+                    cell.setup(with: hourlyWeatherItem[indexPath.item])
+
+                    return cell
                 default:
                     fatalError("Not yet implemented.")
             }
@@ -188,8 +241,8 @@ public final class WeatherViewController: UICollectionViewController {
         // MARK: Snapshot Definition
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         if let currentWeather = self.viewModel.currentWeather {
-            snapshot.appendSections([.currentWeather])
-            snapshot.appendItems([.currentWeather(currentWeather)], toSection: .currentWeather)
+            snapshot.appendSections([.currentWeatherSection])
+            snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
         }
 
         sections = snapshot.sectionIdentifiers
@@ -197,7 +250,7 @@ public final class WeatherViewController: UICollectionViewController {
         dataSource.apply(snapshot)
     }
 
-//    private func bindTextFieldsToViewModel()
+    //    private func bindTextFieldsToViewModel()
     private func bindViewModelToViews() {
         func bindViewModelToErrors() {
             viewModel.errorMessages
@@ -211,15 +264,19 @@ public final class WeatherViewController: UICollectionViewController {
         func bindViewModelToCurrentWeather() {
             viewModel
                 .$currentWeather
+                .removeDuplicates()
+//                .zip(viewModel.$hourlyWeather)//, viewModel.$dailyWeather)
+                .compactMap { $0 }
+//                .map { Item.currentWeatherItem($0) }
                 .receive(on: DispatchQueue.main)
-                .sink { _ in
+                .sink { currentWeather in
 
 
                     var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-                    if let currentWeather = self.viewModel.currentWeather {
-                        snapshot.appendSections([.currentWeather])
-                        snapshot.appendItems([.currentWeather(currentWeather)], toSection: .currentWeather)
-                    }
+//                    if let currentWeather = currentWeather {
+                        snapshot.appendSections([.currentWeatherSection])
+                        snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
+//                    }
 
                     self.sections = snapshot.sectionIdentifiers
 
@@ -228,13 +285,67 @@ public final class WeatherViewController: UICollectionViewController {
 
                 }
                 .store(in: &subscriptions)
+//                .assign(to: &$currentWeatherItem)
         }
+//
+//        func bindToCollectionView() {
+//            $currentWeatherItem
+//                .sink { currentWeatherItem in
+//                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+//                    if case .currentWeatherItem(let currentWeather) = currentWeatherItem {
+//                    snapshot.appendSections([.currentWeatherSection])
+//                    snapshot.appendItems([.currentWeather], toSection: .currentWeatherSection)
+//                                        }
+//
+//                    self.sections = snapshot.sectionIdentifiers
+//
+//                    self.dataSource.apply(snapshot)
+//                }
+//                .store(in: &subscriptions)
+//        }
         
         bindViewModelToErrors()
         bindViewModelToCurrentWeather()
+//        bindToCollectionView()
 
 
     }
+
+//    private func bindSettings() {
+//        let settings = Settings.shared
+//
+//        Publishers.MergeMany(
+//            settings.$temperature.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
+//            settings.$speed.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
+//            settings.$timeFormat.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
+//            settings.$notificationsState.removeDuplicates().map({ _ in }).eraseToAnyPublisher()
+//        )
+//        .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+//        .receive(on: DispatchQueue.main)
+//        .sink { [weak self] _ in
+//            print("collectionView.reloadData")
+//
+//
+//
+//            self?.collectionView.reloadData()
+//
+//        }
+//        .store(in: &subscriptions)
+//
+//
+//        //            .merge(with: settings.$speed)
+//        //            .sink { [weak self] in
+//        //                                self?.collectionView.reloadData()
+//        //                            }
+//        //                            .store(in: &subscriptions)
+//
+//        //            .eraseToAnyPublisher()
+//        //            .merge(settings.$speed.eraseToAnyPublisher(), settings.$timeFormat.eraseToAnyPublisher(), settings.$notificationsState.eraseToAnyPublisher())
+//        //            .sink { [weak self] in
+//        //                self?.collectionView.reloadData()
+//        //            }
+//        //            .store(in: &subscriptions)
+//    }
 
 
 

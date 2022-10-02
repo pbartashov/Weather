@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import Combine
 
 //https://www.userdesk.io/blog/repository-pattern-using-core-data-and-swift/
 /// Generic class for handling NSManagedObject subclasses.
@@ -19,8 +20,27 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
     private let fetchResultService: FetchResultService
 
     /// Automatic fetching results.
-    var fetchResults: [T] {
-        fetchResultService.results as? [T] ?? []
+//    var fetchResults: [T] {
+//        fetchResultService.results as? [T] ?? []
+//    }
+
+//    var fetchedResultsPublisher: AnyPublisher<[[T]], Never> {
+//        //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> {
+//        //        fetchResultService.$state.eraseToAnyPublisher()
+//        fetchResultService.sections
+//            .map { sections in
+//                sections.compactMap { section in
+//                    section.objects?.compactMap { $0 as? T }
+//                }
+//            }
+//            .eraseToAnyPublisher()
+//    }
+    var fetchedResultsPublisher: AnyPublisher<[T], Never> {
+        //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> {
+        //        fetchResultService.$state.eraseToAnyPublisher()
+        fetchResultService.objects
+            .compactMap { $0.compactMap { $0 as? T } }
+            .eraseToAnyPublisher()
     }
 
     /// Designated initializer.
@@ -90,20 +110,21 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
 
     /// Sets up a FetchResultService with stateChanged handler.
     /// - Parameter stateChanged: Closure engaged on FetchResultService state changed.
-    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?) {
-        fetchResultService.stateChanged = stateChanged
-    }
+//    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?) {
+//        fetchResultService.stateChanged = stateChanged
+//    }
 
     /// Starts fetching with given NSPredicate and array of NSSortDescriptors.
     /// - Parameters:
     ///   - predicate: The predicate to be used for fetching the entities.
     ///   - sortDescriptors: The sort descriptors used for sorting the returned array of entities.
     func startFetchingWith(predicate: NSPredicate?,
-                           sortDescriptors: [NSSortDescriptor]?) throws {
+                           sortDescriptors: [NSSortDescriptor]?,
+                           sectionNameKeyPath: String? = nil) throws {
         let fetchRequest = Entity.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
 
-        try fetchResultService.startFetching(with: fetchRequest)
+        try fetchResultService.startFetching(with: fetchRequest, sectionNameKeyPath: sectionNameKeyPath)
     }
 }

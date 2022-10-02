@@ -2,179 +2,103 @@
 //  WeatherViewModel.swift
 //  WeatherKit
 //
-//  Created by Павел Барташов on 24.09.2022.
+//  Created by Павел Барташов on 02.10.2022.
 //
 
-import Combine
 import Foundation
 
-public final class WeatherViewModel {
+public struct WeatherViewModel {
 
     // MARK: - Properties
 
-    public let timeFormatter: DateFormatter = {
-        let timeFormatter = DateFormatter()
-        timeFormatter.locale = Locale(identifier: "en_US_POSIX")
-
-        return timeFormatter
-    }()
-
-    public let timestampFormatter: DateFormatter = {
-        let timestampFormatter = DateFormatter()
-        timestampFormatter.locale = Locale(identifier: "ru_RU")
-
-        return timestampFormatter
-    }()
+    private let weather: Weather
+    private let formatter: UnitsFormatter
 
 
-    public let location: WeatherLocation
-    @Published public var currentWeather: Weather?
+//    public var weatherType: WeatherType {
+//        weather.weatherType
+//    }
 
+//    public var longitude: Double {
+//        weather.longitude
+//    }
+//
+//    public var latitude: Double {
+//        weather.latitude
+//    }
 
-    public var errorMessages: AnyPublisher<Error, Never> {
-        errorMessagesSubject.eraseToAnyPublisher()
+    public var humidity: String {
+        formatter.format(humidity: weather.humidity)
     }
-    private let errorMessagesSubject = PassthroughSubject<Error, Never>()
 
-    private var subscriptions = Set<AnyCancellable>()
+    public var cloudcover: String {
+        formatter.format(cloudcover: weather.cloudcover)
+    }
 
-    private let weatherRepository: WeatherRepositoryProtocol
+    public var windspeed: String {
+        formatter.format(speed: weather.windspeed)
+    }
+
+    public var sunriseEpoch: String {
+        formatter.format(time: weather.sunriseEpoch)
+    }
+
+    public var sunsetEpoch: String {
+        formatter.format(time: weather.sunsetEpoch)
+    }
+
+    public var datetimeEpoch: String {
+        formatter.format(dateTime: weather.datetimeEpoch)
+    }
+
+    public var time: String {
+        formatter.format(time: weather.datetimeEpoch)
+    }
+
+    public var temp: String {
+        formatter.format(temperature: weather.temp)
+    }
+
+    public var tempmax: String {
+        formatter.format(temperature: weather.tempmax)
+    }
+
+    public var tempmin: String {
+        formatter.format(temperature: weather.tempmin)
+    }
+    
+    public var conditions: String {
+        weather.conditions
+    }
+
+//    public var hours: [Weather]?
 
 
-
+    // MARK: - Views
 
     // MARK: - LifeCicle
 
-    public init(
-        location: WeatherLocation,
-        weatherRepository: WeatherRepositoryProtocol
-
+    public init(weather: Weather,
+         formatter: UnitsFormatter
     ) {
-        self.location = location
-        self.weatherRepository = weatherRepository
-
-        bindToSettings()
-
-//        configureDateFormatters(format: Settings.shared.timeFormat)
-
-        
-        //        Task {
-        //            await self.fetchCurrentWeather(latitude: 63,
-        //                                      longitude: 43)
-        //        }
-
-
-
-
-
-        
+        self.weather = weather
+        self.formatter = formatter
     }
-    
+
     // MARK: - Metods
 
-    private func bindToSettings() {
-        let settings = Settings.shared
-
-        func bindToSettingsTemperature() {
-            settings.$timeFormat
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] format in
-                    self?.configureDateFormatters(format: format)
-                }
-                .store(in: &subscriptions)
-        }
-
-
-        bindToSettingsTemperature()
-    }
-    public func fetchWeather() async {
-        await fetchCurrentWeather()
-    }
-
-    private func fetchCurrentWeather(//latitude: Double,
-        //                         longitude: Double
-    ) async {
-        do {
-//            currentWeather = try await weatherRepository.fetchCurrentDayWeather(location: location)
-            configureDateFormatters(format: Settings.shared.timeFormat)
-            print(currentWeather)
-            print(currentWeather?.sunsetEpoch)
-            //            for var animal in animalsContainer.animals {
-            //                animal.toManagedObject()
-            //            }
-        } catch {
-            errorMessagesSubject.send(error)
-        }
-    }
-    //     public let errorPresentation = PassthroughSubject<ErrorPresentation?, Never>()
-
-    private func configureDateFormatters(format: Settings.TimeFormat) {
-        if case .format12 = format {
-            timeFormatter.dateFormat = "HH:mm"
-            timestampFormatter.dateFormat = "HH:mm, DD LL"
-        } else {
-            timeFormatter.dateFormat = "hh:mm a"
-            timestampFormatter.dateFormat = "hh:mm a, E dd MMMM"
-//            timestampFormatter.dateStyle = .medium
-//            timestampFormatter.timeStyle = .short
-        }
-
-        guard let currentWeather = currentWeather
-//              let timezone = currentWeather.timezone
-        else { return }
-
-//        timeFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
-//        timestampFormatter.timeZone = TimeZone(identifier: currentWeather.timezone)
-    }
 
 
 }
 
-extension Weather {
-    public var tempFormatted: String? {
-//        guard let temp = temp else { return nil }
 
-        return "\(temp)\(Settings.shared.temperatureSymbol)"
-    }
-
-    public var cloudsFormatted: String? {
-//        guard let clouds = clouds else { return nil }
-
-        return "\(cloudcover)"
-    }
-
-    public var humidityFormatted: String? {
-//        guard let rh = rh else { return nil }
-
-        return "\(String(format: "%.0f", humidity))%"
-    }
-
-    public var windSpeedFormatted: String? {
-//        guard let windSpd = windSpd else { return nil }
-
-        return "\(String(format: "%.0f", windspeed)) \(Settings.shared.velocitySymbol)"
-    }
-
-//    public var sunriseFormatted: String? {
-//        guard let sunrise = sunrise else { return nil }
-//        if case .format12 = Settings.shared.timeFormat {
-//            return sunrise.formatted(date: .omitted, time: .shortened)
-//        }
-//
-//        return sunrise.formatted(date: .omitted, time: .shortened)
-//
+extension WeatherViewModel: Hashable {
+//    public static func == (lhs: WeatherViewModel, rhs: WeatherViewModel) -> Bool {
+//        lhs.weather == rhs.weather
 //    }
-
-//    public var sunsetFormatted: String? {
-//        guard let windSpd = windSpd else { return nil }
-//
-//        return "\(String(format: "%.0f", windSpd))\(Settings.shared.velocitySymbol)"
+//    
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(weather)
+//        hasher.combine(formatter)
 //    }
-
-//    public var timestamp: String? {
-//        guard let windSpd = windSpd else { return nil }
-//
-//        return "\(String(format: "%.0f", windSpd))\(Settings.shared.velocitySymbol)"
-//    }
-
 }

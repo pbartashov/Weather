@@ -7,12 +7,23 @@
 
 import UIKit
 import WeatherKit
+import Combine
 
 final class SettingsView: UIView {
 
+    enum Button {
+        case setup
+    }
+
     // MARK: - Properties
 
+
     private let settings = Settings.shared
+
+    private let buttonTapped = PassthroughSubject<Button, Never>()
+    var buttonTappedPublisher: AnyPublisher<Button, Never> {
+        buttonTapped.eraseToAnyPublisher()
+    }
 
     // MARK: - Views
 
@@ -65,77 +76,96 @@ final class SettingsView: UIView {
         return stack
     }()
 
+    private lazy var temperatureRow: SettingsRow<Settings.Temperature> = {
+        let values: [Settings.Temperature] = [.celcius, .farenheit]
+        return SettingsRow(title: "Температура", values: values)
+    }()
+
+    private lazy var windSpeedRow: SettingsRow<Settings.Speed> = {
+        let values: [Settings.Speed] = [.miles, .kilometers]
+        return SettingsRow(title: "Скорость ветра", values: values)
+    }()
+
+    private lazy var timeFormatRow: SettingsRow<Settings.TimeFormat> = {
+        let values: [Settings.TimeFormat] = [.format12, .format24]
+        return SettingsRow(title: "Формат времени", values: values)
+    }()
+
+    private lazy var notificationsRow: SettingsRow<Settings.Notifications> = {
+        let values: [Settings.Notifications] = [.enabled, .disabled]
+        return SettingsRow(title: "Уведомления", values: values)
+    }()
     //    private temperatureDict = Dictionary<Settings.Temperature, 0
-    private lazy var temperatureRow: SettingsRow = {
-        let celcius = UIAction(title: "C") { [weak self] _ in
-            self?.settings.temperature = .celcius
-
-        }
-
-        let farenheit = UIAction(title: "F")  { [weak self] _ in
-            self?.settings.temperature = .farenheit
-        }
-
-        var actions: [UIAction?] = [nil, nil]
-        actions[Settings.Temperature.celcius.rawValue] = celcius
-        actions[Settings.Temperature.farenheit.rawValue] = farenheit
-
-        return SettingsRow(title: "Температура", actions: actions.compactMap { $0 })
-    }()
-
-    private lazy var windVelocityRow: SettingsRow = {
-        let miles = UIAction(title: "Mi") { [weak self] _ in
-            self?.settings.velocity = .miles
-
-        }
-
-        let kilometers = UIAction(title: "Km") { [weak self] _ in
-            self?.settings.velocity = .kilometers
-
-        }
-
-        var actions: [UIAction?] = [nil, nil]
-        actions[Settings.Velocity.miles.rawValue] = miles
-        actions[Settings.Velocity.kilometers.rawValue] = kilometers
-
-        return SettingsRow(title: "Скорость ветра", actions: actions.compactMap { $0 })
-    }()
-
-    private lazy var timeFormatRow: SettingsRow = {
-        let format12 = UIAction(title: "12") { [weak self] _ in
-            self?.settings.timeFormat = .format12
-
-        }
-
-        let format24 = UIAction(title: "24") { [weak self] _ in
-            self?.settings.timeFormat = .format24
-
-        }
-
-        var actions: [UIAction?] = [nil, nil]
-        actions[Settings.TimeFormat.format12.rawValue] = format12
-        actions[Settings.TimeFormat.format24.rawValue] = format24
-
-        return SettingsRow(title: "Формат времени", actions: actions.compactMap { $0 })
-    }()
-
-    private lazy var notificationsRow: SettingsRow = {
-        let on = UIAction(title: "On") { [weak self] _ in
-            self?.settings.notificationsState = .enabled
-
-        }
-
-        let off = UIAction(title: "Off") { [weak self] _ in
-            self?.settings.notificationsState = .disabled
-
-        }
-
-        var actions: [UIAction?] = [nil, nil]
-        actions[Settings.Notifications.enabled.rawValue] = on
-        actions[Settings.Notifications.disabled.rawValue] = off
-
-        return SettingsRow(title: "Уведомления", actions: actions.compactMap { $0 })
-    }()
+//    private lazy var temperatureRow: SettingsRow = {
+//        let celcius = UIAction(title: "C") { [weak self] _ in
+//            self?.settings.temperature = .celcius
+//
+//        }
+//
+//        let farenheit = UIAction(title: "F")  { [weak self] _ in
+//            self?.settings.temperature = .farenheit
+//        }
+//
+//        var actions: [UIAction?] = [nil, nil]
+//        actions[Settings.Temperature.celcius.rawValue] = celcius
+//        actions[Settings.Temperature.farenheit.rawValue] = farenheit
+//
+//        return SettingsRow(title: "Температура", actions: actions.compactMap { $0 })
+//    }()
+//
+//    private lazy var windSpeedRow: SettingsRow = {
+//        let miles = UIAction(title: "Mi") { [weak self] _ in
+//            self?.settings.speed = .miles
+//
+//        }
+//
+//        let kilometers = UIAction(title: "Km") { [weak self] _ in
+//            self?.settings.speed = .kilometers
+//
+//        }
+//
+//        var actions: [UIAction?] = [nil, nil]
+//        actions[Settings.Speed.miles.rawValue] = miles
+//        actions[Settings.Speed.kilometers.rawValue] = kilometers
+//
+//        return SettingsRow(title: "Скорость ветра", actions: actions.compactMap { $0 })
+//    }()
+//
+//    private lazy var timeFormatRow: SettingsRow = {
+//        let format12 = UIAction(title: "12") { [weak self] _ in
+//            self?.settings.timeFormat = .format12
+//
+//        }
+//
+//        let format24 = UIAction(title: "24") { [weak self] _ in
+//            self?.settings.timeFormat = .format24
+//
+//        }
+//
+//        var actions: [UIAction?] = [nil, nil]
+//        actions[Settings.TimeFormat.format12.rawValue] = format12
+//        actions[Settings.TimeFormat.format24.rawValue] = format24
+//
+//        return SettingsRow(title: "Формат времени", actions: actions.compactMap { $0 })
+//    }()
+//
+//    private lazy var notificationsRow: SettingsRow = {
+//        let on = UIAction(title: "On") { [weak self] _ in
+//            self?.settings.notificationsState = .enabled
+//
+//        }
+//
+//        let off = UIAction(title: "Off") { [weak self] _ in
+//            self?.settings.notificationsState = .disabled
+//
+//        }
+//
+//        var actions: [UIAction?] = [nil, nil]
+//        actions[Settings.Notifications.enabled.rawValue] = on
+//        actions[Settings.Notifications.disabled.rawValue] = off
+//
+//        return SettingsRow(title: "Уведомления", actions: actions.compactMap { $0 })
+//    }()
 
     private lazy var setupButton: UIButton = {
         let button = UIButton()
@@ -194,7 +224,7 @@ final class SettingsView: UIView {
         }
 
         [temperatureRow,
-         windVelocityRow,
+         windSpeedRow,
          timeFormatRow,
          notificationsRow
 
@@ -265,7 +295,7 @@ final class SettingsView: UIView {
     //        return SettingsRow(title: "Температура", actions: [celcius, farenheit])
     //    }
     //
-    //    private func createWindVelocityRow() -> SettingsRow {
+    //    private func createWindSpeedRow() -> SettingsRow {
     //        let miles = UIAction(title: "Mi") { _ in () }
     //        let kilometers = UIAction(title: "Km") { _ in () }
     //        return SettingsRow(title: "Скорость ветра", actions: [miles, kilometers])
@@ -286,10 +316,10 @@ final class SettingsView: UIView {
 
     private func setup() {
 
-        temperatureRow.setSelectedIndex(settings.temperature.rawValue)
-        windVelocityRow.setSelectedIndex(settings.velocity.rawValue)
-        timeFormatRow.setSelectedIndex(settings.timeFormat.rawValue)
-        notificationsRow.setSelectedIndex(settings.notificationsState.rawValue)
+        temperatureRow.setSelected(value: settings.temperature)
+        windSpeedRow.setSelected(value: settings.speed)
+        timeFormatRow.setSelected(value: settings.timeFormat)
+        notificationsRow.setSelected(value: settings.notificationsState)
         //        switch settings.temperature {
         //            case .celcius:
         //                temperatureRow.setSelectedIndex(0)
@@ -300,6 +330,24 @@ final class SettingsView: UIView {
     }
 
     @objc func setupButtonTapped() {
+        if let temperature = temperatureRow.currentValue {
+            settings.temperature = temperature
+        }
+
+        if let windSpeed = windSpeedRow.currentValue {
+            settings.speed = windSpeed
+        }
+
+        if let timeFormat = timeFormatRow.currentValue {
+            settings.timeFormat = timeFormat
+        }
+
+        if let notifications = notificationsRow.currentValue {
+            settings.notificationsState = notifications
+        }
+
+
         settings.save()
+        buttonTapped.send(.setup)
     }
 }

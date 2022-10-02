@@ -8,7 +8,7 @@
 import UIKit
 import WeatherKit
 
-public final class MainViewController: UINavigationController {
+public final class MainViewController: UIViewController {
 
     // MARK: - Properties
 
@@ -32,7 +32,8 @@ public final class MainViewController: UINavigationController {
     let otherPageIconImage = UIImage(named: "DotIcon.fill")
 
     // Factories
-    let makeWeatherViewController: (Int) -> WeatherViewController
+    let makeWeatherViewController: (Int) -> WeathersViewController
+    let makeSettingsViewController: () -> SettingsViewController
 
 //    private var locations = [LocationWeather(index: 0, cityName: "London"),
 //                        LocationWeather(index: 1, cityName: "Vladivostok"),
@@ -65,12 +66,12 @@ public final class MainViewController: UINavigationController {
 
     public init(
         viewModel: MainViewModel,
-        weatherViewControllerFactory: @escaping (Int) -> WeatherViewController
+        weatherViewControllerFactory: @escaping (Int) -> WeathersViewController,
+        settingsViewControllerFactory: @escaping ()-> SettingsViewController
     ) {
-
         self.viewModel = viewModel
-
         self.makeWeatherViewController = weatherViewControllerFactory
+        self.makeSettingsViewController = settingsViewControllerFactory
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -105,19 +106,25 @@ public final class MainViewController: UINavigationController {
                                           direction: .forward,
                                           animated: true)
 
-        pageController.view.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)
+//        pageController.view.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)
 
         addChild(pageController)
         view.addSubview(pageController.view)
         pageController.didMove(toParent: self)
 
+        pageController.view.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
 
-        self.view.addSubview(pageControl)
+        view.addSubview(pageControl)
 
         pageControl.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(82)
             make.centerX.equalToSuperview()
         }
+
+
 
 
 
@@ -163,11 +170,14 @@ public final class MainViewController: UINavigationController {
         search.tintColor = .brandTextColor
         navigationItem.rightBarButtonItem = search
 
-        
+
     }
 
     @objc private func menuTapped() {
-
+        let settings = makeSettingsViewController()
+//        settings.modalPresentationStyle = .fullScreen
+        navigationController?.pushViewController(settings, animated: true)
+//        present(settings, animated: true)
     }
 
     @objc private func searchTapped() {
@@ -192,7 +202,7 @@ public final class MainViewController: UINavigationController {
 extension MainViewController: UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController,
                             willTransitionTo pendingViewControllers: [UIViewController]) {
-        guard let nextViewController = pendingViewControllers.first as? WeatherViewController else { return }
+        guard let nextViewController = pendingViewControllers.first as? WeathersViewController else { return }
         moveToIndex = nextViewController.locationID
     }
 

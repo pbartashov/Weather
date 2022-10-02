@@ -1,6 +1,6 @@
 //
 //  UIView+Extension.swift
-//  Navigation
+//  WeatherUIKit
 //
 //  Created by Павел Барташов on 25.03.2022.
 //

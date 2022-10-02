@@ -8,33 +8,33 @@
 import WeatherKit
 
 enum Item: Hashable {
-    case currentWeather(Weather)
-    case hourWeather(HourlyWeather)
-    case dayWeather(DailyWeather)
+    case currentWeatherItem(WeatherViewModel)
+    case hourlyWeatherItem([WeatherViewModel])
+    case dailyWeatherItem([WeatherViewModel])
 
-    var currentWeather: Weather? {
-        if case .currentWeather(let currentWeather) = self {
-            return currentWeather
-        } else {
-            return nil
-        }
-    }
-
-    var hourWeather: HourlyWeather? {
-        if case .hourWeather(let hourWeather) = self {
-            return hourWeather
-        } else {
-            return nil
-        }
-    }
-
-    var dayWeather: DailyWeather? {
-        if case .dayWeather(let dayWeather) = self {
-            return dayWeather
-        } else {
-            return nil
-        }
-    }
+//    var currentWeather: WeatherViewModel? {
+//        if case .currentWeather(let currentWeather) = self {
+//            return currentWeather
+//        } else {
+//            return nil
+//        }
+//    }
+//
+//    var hourWeather: HourlyWeather? {
+//        if case .hourWeather(let hourWeather) = self {
+//            return hourWeather
+//        } else {
+//            return nil
+//        }
+//    }
+//
+//    var dayWeather: DailyWeather? {
+//        if case .dayWeather(let dayWeather) = self {
+//            return dayWeather
+//        } else {
+//            return nil
+//        }
+//    }
 
 //    static let promotedApps: [Item] = [
 //        .app(App(promotedHeadline: "Now Trending", title: "Game Title", subtitle: "Game Description", price: 3.99)),

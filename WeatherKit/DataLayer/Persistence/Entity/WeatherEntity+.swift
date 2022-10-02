@@ -13,7 +13,7 @@ extension WeatherEntity: DomainModel {
     typealias DomainModelType = Weather
     
     func toDomainModel() -> Weather {
-        Weather(weatherType: WeatherType.init(rawValue: Int(weatherType)) ?? .none,
+        Weather(weatherType: weatherType,
                 humidity: humidity,
                 cloudcover: cloudcover,
                 windspeed: windspeed,
@@ -38,9 +38,9 @@ extension WeatherEntity: DomainModel {
 //        self.latitude = Int16(latitude)
 //        self.longitude = Int16(longitude)
 //        self.weatherType = Int16(weatherType.rawValue)
-        latitude = Int16(model.latitude)
-        longitude = Int16(model.longitude)
-        weatherType = Int16(model.weatherType.rawValue)
+        latitude = Double(model.latitude)
+        longitude = Double(model.longitude)
+        weatherTypeRaw = Int16(model.weatherType.rawValue)
 
         humidity = Double(model.humidity)
         cloudcover = Double(model.cloudcover)
@@ -54,6 +54,13 @@ extension WeatherEntity: DomainModel {
         conditions = model.conditions
     }
 }
+
+extension WeatherEntity {
+    var weatherType: WeatherType {
+        .init(rawValue: Int(weatherTypeRaw)) ?? .none
+    }
+}
+
 //
 //extension UIImage {
 //    convenience init?(data: Data?) {

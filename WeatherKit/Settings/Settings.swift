@@ -19,7 +19,7 @@ public final class Settings {
         case farenheit
     }
 
-    public enum Velocity: Int {
+    public enum Speed: Int {
         case miles = 0
         case kilometers
     }
@@ -45,10 +45,10 @@ public final class Settings {
 //        }
 //    }
 
-    @Published public var velocity: Velocity
+    @Published public var speed: Speed
 //{
 //        didSet {
-//            settingsStorage.save(velocity)
+//            settingsStorage.save(speed)
 //        }
 //    }
 
@@ -65,27 +65,27 @@ public final class Settings {
 //            settingsStorage.save(notificationsEnabled)
 //        }
 //    }
-
-    public var temperatureSymbol: String {
-        switch temperature {
-            case .celcius:
-                return "°"
-
-            case .farenheit:
-                return "F"
-        }
-    }
-
-
-    public var velocitySymbol: String {
-        switch velocity {
-            case .miles:
-                return "mph"
-
-            case .kilometers:
-                return "м\\с"
-        }
-    }
+//
+//    public var temperatureSymbol: String {
+//        switch temperature {
+//            case .celcius:
+//                return "°"
+//
+//            case .farenheit:
+//                return "F"
+//        }
+//    }
+//
+//
+//    public var speedSymbol: String {
+//        switch speed {
+//            case .miles:
+//                return "mph"
+//
+//            case .kilometers:
+//                return "м\\с"
+//        }
+//    }
 
 
 
@@ -101,7 +101,7 @@ public final class Settings {
 
     private init() {
         temperature = settingsStorage.restoreTemperature()
-        velocity = settingsStorage.restoreVelocity()
+        speed = settingsStorage.restoreSpeed()
         timeFormat = settingsStorage.restoreTimeFormat()
         notificationsState = settingsStorage.restoreNotificationsEnabled()
 
@@ -113,9 +113,9 @@ public final class Settings {
                     })
 
             subscriptions.append(
-                settingsStorage.velocityUnitValueChanged
+                settingsStorage.speedUnitValueChanged
                     .sink { [weak self] value in
-                        self?.velocity = Velocity(value)
+                        self?.speed = Speed(value)
                     })
 
             subscriptions.append(
@@ -137,7 +137,7 @@ public final class Settings {
 
     public func save() {
         settingsStorage.save(temperature)
-        settingsStorage.save(velocity)
+        settingsStorage.save(speed)
         settingsStorage.save(timeFormat)
         settingsStorage.save(notificationsState)
     }
@@ -157,12 +157,12 @@ extension Settings.Temperature {
     }
 }
 
-extension Settings.Velocity {
-    static let defaultValue = Settings.Velocity.kilometers
+extension Settings.Speed {
+    static let defaultValue = Settings.Speed.kilometers
 
 
     init(_ value: Int) {
-        self = .init(rawValue: value) ?? Settings.Velocity.defaultValue
+        self = .init(rawValue: value) ?? Settings.Speed.defaultValue
     }
 }
 
