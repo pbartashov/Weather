@@ -28,9 +28,24 @@ extension UIColor {
         getBrandColor(named: "TextColor")
     }
 
-    static var brandYellowColor: UIColor {
+    static var brandYellow: UIColor {
         getBrandColor(named: "YellowColor")
     }
+
+    static var brandLightPurple: UIColor {
+        getBrandColor(named: "LightPurpleColor")
+    }
+
+    static var brandTextGrayColor: UIColor {
+        getBrandColor(named: "TextGrayColor")
+    }
+
+    static var brandTextPurpleColor: UIColor {
+        getBrandColor(named: "TextPurpleColor")
+    }
+
+
+
 
 
 

@@ -10,7 +10,8 @@ public protocol WeartherFormatterProtocol {
     func format(speed: Double) -> String
     func format(time: Date) -> String
     func format(dateTime: Date) -> String
+    func format(dayMonth: Date) -> String
     func format(cloudcover: Double) -> String
     func format(humidity: Double) -> String
-
+    func format(precipcover: Double) -> String 
 }

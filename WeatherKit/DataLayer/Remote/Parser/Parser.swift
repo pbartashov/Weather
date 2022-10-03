@@ -19,14 +19,36 @@ public final class DataParser: DataParserProtocol {
         jsonDecoder: JSONDecoder = JSONDecoder()
 //        dateFormatter: DateFormatter = DateFormatter()
     ) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm:ss"
-        dateFormatter.timeZone = TimeZone(identifier: "GMT")
+//        dateFormatter.dateFormat = "HH:mm:ss"
+//        dateFormatter.timeZone = TimeZone(identifier: "GMT")
+//        decoder.userInfo[HeaderInformation.textColorUserInfoKey] = UIColor.red
 //        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        
+
+//        if let key = WeatherContainer.dateFormatterUserInfoKey {
+//            let dateFormatter = DateFormatter()
+//            jsonDecoder.userInfo[key] = dateFormatter
+//        }
+
+//        if let key = WeatherContainer.weatherTypeUserInfoKey {
+//            jsonDecoder.userInfo[key] = WeatherType.none
+//        }
+//
+//        if let key = WeatherContainer.longitudeUserInfoKey {
+//            jsonDecoder.userInfo[key] = 0.0
+//        }
+//
+//        if let key = WeatherContainer.latitudeUserInfoKey {
+//            jsonDecoder.userInfo[key] = 0.0
+//        }
+
+        if let key = WeatherContainer.boxUserInfoKey {
+            jsonDecoder.userInfo[key] = ParserBox()
+        }
+
         self.jsonDecoder = jsonDecoder
-        self.jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
-//        self.jsonDecoder.dateDecodingStrategy = .secondsSince1970
+
+//        self.jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
+        self.jsonDecoder.dateDecodingStrategy = .secondsSince1970
         
 //        self.jsonDecoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
 ////            guard let self = self else { return Date() }

@@ -113,14 +113,15 @@ public final class MainViewController: UIViewController {
         pageController.didMove(toParent: self)
 
         pageController.view.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            make.leading.trailing.bottom.equalToSuperview()
+//            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+//            make.leading.trailing.bottom.equalToSuperview()
+            make.edges.equalToSuperview()
         }
 
         view.addSubview(pageControl)
 
         pageControl.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(82)
+            make.centerY.equalTo(view.snp.top).offset(87)
             make.centerX.equalToSuperview()
         }
 

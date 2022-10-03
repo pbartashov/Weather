@@ -40,6 +40,7 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
         let stack = UIStackView()
         stack.axis = .vertical
         stack.distribution = .equalCentering
+        stack.alignment = .center
 
         return stack
     }()
@@ -61,6 +62,8 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
     private func initialize() {
         contentView.layer.cornerRadius = 22
         contentView.layer.masksToBounds = true
+        contentView.layer.borderWidth = 0.5
+        contentView.layer.borderColor = UIColor.brandLightPurple.cgColor
 
         [timeLabel,
          weatherIconView,
@@ -69,7 +72,9 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
         }
 
         contentView.addSubview(stackView)
-//        [stackView
+//        [timeLabel,
+//         weatherIconView,
+//         temperatureLabel
 //        ].forEach {
 //            contentView.addSubview($0)
 //        }
@@ -79,8 +84,28 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
 
     private func setupLayouts() {
         stackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.equalToSuperview().offset(15)
+            make.centerX.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-8)
         }
+
+//        timeLabel.snp.makeConstraints { make in
+//            make.top.equalToSuperview().offset(15)
+//            make.centerX.equalToSuperview()
+//        }
+//
+//        weatherIconView.snp.makeConstraints { make in
+//            make.top.equalTo(timeLabel.snp.bottom).offset(7)
+//            make.centerX.equalToSuperview()
+//        }
+//
+//
+//
+//        temperatureLabel.snp.makeConstraints { make in
+//            make.top.equalToSuperview().offset(58)
+//            make.centerX.equalToSuperview()
+//            make.bottom.equalToSuperview().offset(-8)
+//        }
 
     }
 
@@ -89,46 +114,54 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
         //               timeFormatter: DateFormatter,
         //               timestampFormatter: DateFormatter) {
 
-        temperatureLabel.text = weather.temp
-//        weatherIconView.image = weather.icon
         timeLabel.text = weather.time
+        weatherIconView.image = weather.icon.icon
+        temperatureLabel.text = weather.temp
 
-        //        temperatureLabel.text = formatter.format(temperature: weather.temp)
-        ////        temperatureLabel.text = weather.tempFormatted
-        //        descriptionLabel.text = weather.conditions
-        //
-        //        cloudsView.text = formatter.format(cloudcover: weather.cloudcover)
-        ////        cloudsView.text = weather.cloudsFormatted
-        //        windSpeedView.text = formatter.format(speed: weather.windspeed)
-        ////        windSpeedView.text = weather.windSpeedFormatted
-        //        humidityView.text = formatter.format(humidity: weather.humidity)
-        //
-        ////        if let sunrise = weather.sunrise {
-        ////        let date = dateFormatter.date(from: weather.sunrise)
-        //
-        //
-        //        sunriseLabel.text = formatter.format(time: weather.sunriseEpoch)
-        ////            sunriseLabel.text = timeFormatter.string(from: weather.sunriseEpoch)
-        ////        } else {
-        ////            sunriseLabel.text = nil
-        ////        }
-        //
-        ////        if let sunset = weather.sunset {
-        //        sunsetLabel.text = formatter.format(time: weather.sunsetEpoch)
-        ////        sunsetLabel.text = timeFormatter.string(from: weather.sunsetEpoch)
-        ////        } else {
-        ////            sunsetLabel.text = nil
-        ////        }
-        //
-        //        timestampLabel.text = formatter.format(dateTime: weather.datetimeEpoch)
-        ////        timestampLabel.text = timestampFormatter.string(from: weather.datetimeEpoch)
-        //
+        if weather.isHighLighted {
+            contentView.backgroundColor = .brandBlue
+            timeLabel.textColor = .white
+            temperatureLabel.textColor = .white
+        } else {
+            contentView.backgroundColor = .white
+            timeLabel.textColor = .brandTextColor
+            temperatureLabel.textColor = .brandTextColor
+        }
+    }
+}
 
 
+fileprivate extension WeatherIcon {
+    static let defaultIcon = UIImage()
+
+    var icon: UIImage {
+        switch self {
+            case .snow, .rain, .showersDay, .showersNight,
+                    .snowShowersDay, .snowShowersNight:
+                return getIcon(named: "Rain")
+
+            case .fog:
+                return getIcon(named: "Fog")
+
+           case .cloudy, .partlyCloudyDay, .partlyCloudyNight:
+                return getIcon(named: "Cloudly")
+
+            case .clearDay, .wind:
+                return getIcon(named: "Sunny")
+
+            case .clearNight:
+                return getIcon(named: "Moon")
+
+            case .thunderRain, .thunderShowersDay,
+                    .thunderShowersNight:
+                return getIcon(named: "Thunder")
+
+            case .none:
+                return WeatherIcon.defaultIcon
+        }
     }
 
-    //    func setupMinMaxTemperature(min: Int, max: Int) {
-    //        let symbol = Settings.shared.temperatureSymbol
-    //        minMaxTemperatureLabel.text = "\(min)\(symbol)/ \(max)\(symbol)"
-    //    }
+    func getIcon(named: String) -> UIImage {
+        UIImage(named: named) ?? WeatherIcon.defaultIcon
+    }
 }

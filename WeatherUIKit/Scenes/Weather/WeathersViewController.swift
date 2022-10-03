@@ -14,9 +14,17 @@ public final class WeathersViewController: UICollectionViewController {
     // MARK: Section Definitions
     enum Section: Hashable {
         case currentWeatherSection
-        case hourWeatherSection
-        case dayWeatherSection
+        case hourlyWeatherSection
+        case dailyWeatherSection
     }
+
+    enum SupplementaryViewKind {
+        static let hourlyWeatherHeader = "hourly"
+        static let dailyWeatherHeader = "daily"
+//        static let bottomLine = "bottomLine"
+    }
+
+
 
     // MARK: - Properties
 
@@ -33,11 +41,28 @@ public final class WeathersViewController: UICollectionViewController {
 
     private var sections = [Section]()
 
-//    @Published private var currentWeatherItem: Item
+    @Published private var currentWeatherItem: Item?
+    @Published private var hourlyWeatherItems: [Item] = []
+    @Published private var dailyWeatherItems: [Item] = []
 
 
 
     // MARK: - Views
+
+//    private let currentWeatherViewCell: CurrentWeatherViewCell = {
+//        let cell = CurrentWeatherViewCell()
+//        return cell
+//    }()
+
+//    private let hourlyWeatherHeaderView: WeatherSectionHeaderView = {
+//        let view = WeatherSectionHeaderView()
+//        return view
+//    }()
+//
+//    private let dailyWeatherHeaderView: WeatherSectionHeaderView = {
+//        let view = WeatherSectionHeaderView()
+//        return view
+//    }()
 
     // MARK: - LifeCicle
 
@@ -122,55 +147,6 @@ public final class WeathersViewController: UICollectionViewController {
 
     // MARK: - Metods
 
-    private func createLayout() -> UICollectionViewLayout {
-        let layout = UICollectionViewCompositionalLayout
-        { [weak self] (sectionIndex, layoutEnvironment) ->
-            NSCollectionLayoutSection? in
-            guard let self = self,
-                  !self.sections.isEmpty else { return nil }
-
-            let section = self.sections[sectionIndex]
-            switch section {
-                case .currentWeatherSection:
-                    // MARK: Promoted Section Layout
-                    let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(344),
-                                                          heightDimension: .absolute(212))
-                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
-                                                           heightDimension: .estimated(212))
-
-                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
-                                                                   subitem: item,
-                                                                   count: 1)
-                    let section = NSCollectionLayoutSection(group: group)
-                    section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
-
-                    return section
-
-                case .hourWeatherSection:
-                    let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(42),
-                                                          heightDimension: .absolute(84))
-                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
-                                                           heightDimension: .estimated(250))
-                    
-                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
-                                                                   subitems: [item])
-                    
-                    let section = NSCollectionLayoutSection(group: group)
-                    section.orthogonalScrollingBehavior = .groupPagingCentered
-
-                    return section
-
-                default:
-                    return nil
-            }
-        }
-        return layout
-    }
-
     private func configureCollectionView() {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         // Register cell classes
@@ -180,17 +156,153 @@ public final class WeathersViewController: UICollectionViewController {
         collectionView.register(HourlyWeatherViewCell.self,
                                 forCellWithReuseIdentifier: HourlyWeatherViewCell.identifier)
 
+        collectionView.register(DailyWeatherViewCell.self,
+                                forCellWithReuseIdentifier: DailyWeatherViewCell.identifier)
+
+        collectionView.register(WeatherSectionHeaderView.self,
+                                forSupplementaryViewOfKind: SupplementaryViewKind.hourlyWeatherHeader,
+                                withReuseIdentifier: WeatherSectionHeaderView.identifier)
+
+        collectionView.register(WeatherSectionHeaderView.self,
+                                forSupplementaryViewOfKind: SupplementaryViewKind.dailyWeatherHeader,
+                                withReuseIdentifier: WeatherSectionHeaderView.identifier)
+//        collectionView.register(LineView.self, forSupplementaryViewOfKind:
+//                                    SupplementaryViewKind.topLine, withReuseIdentifier:
+//                                    LineView.reuseIdentifier)
+//        collectionView.register(LineView.self, forSupplementaryViewOfKind:
+//                                    SupplementaryViewKind.bottomLine, withReuseIdentifier:
+//                                    LineView.reuseIdentifier)
 
         collectionView.contentInsetAdjustmentBehavior = .never
-        collectionView.contentInset = .init(top: 112, left: 16, bottom: 0, right: 16)
-
+        collectionView.contentInset = .init(top: 112, left: 0, bottom: 0, right: 0)
+//        collectionView.bounces = false
+//        collectionView.alwaysBounceHorizontal = false
         configureDataSource()
     }
 
-    private func configureDataSource() {
-        // MARK: Data Source Initialization
-        dataSource = .init(collectionView: collectionView, cellProvider: {
-            [weak self] (collectionView, indexPath, item) -> UICollectionViewCell? in
+    func createLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
+            guard !self.sections.isEmpty else { return nil }
+
+            let headerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
+                                                        heightDimension: .estimated(44))
+            let headerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
+                                                                         elementKind: SupplementaryViewKind.hourlyWeatherHeader,
+                                                                         alignment: .topTrailing)
+
+//            let lineItemHeight = 1 / layoutEnvironment.traitCollection.displayScale
+//            let lineItemSize =
+//            NSCollectionLayoutSize(widthDimension:
+//                    .fractionalWidth(0.92),
+//                                   heightDimension: .absolute(lineItemHeight))
+//
+//            let topLineItem =
+//            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
+//                                                            lineItemSize, elementKind: SupplementaryViewKind.topLine,
+//                                                        alignment: .top)
+//
+//            let bottomLineItem =
+//            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
+//                                                            lineItemSize, elementKind: SupplementaryViewKind.bottomLine,
+//                                                        alignment: .bottom)
+
+            let supplementaryItemContentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
+                                                                         bottom: 0, trailing: 4)
+            headerItem.contentInsets = supplementaryItemContentInsets
+//            topLineItem.contentInsets = supplementaryItemContentInsets
+//            bottomLineItem.contentInsets = supplementaryItemContentInsets
+
+            let section = self.sections[sectionIndex]
+            switch section {
+                case .currentWeatherSection:
+                    // MARK: Promoted Section Layout
+                    let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                          heightDimension: .fractionalHeight(1))
+
+                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
+//                    item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
+//                                                                 bottom: 0, trailing: 4)
+#warning("absolute")
+                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
+                                                           heightDimension: .estimated(212))
+                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                                   subitems: [item])
+
+                    let section = NSCollectionLayoutSection(group: group)
+                    section.orthogonalScrollingBehavior = .groupPagingCentered
+//                    section.boundarySupplementaryItems = [topLineItem,
+//                                                          bottomLineItem]
+
+                    section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0,
+                                                                    bottom: 20, trailing: 0)
+
+                    return section
+
+                case .hourlyWeatherSection:
+                    let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                          heightDimension: .fractionalHeight(1))
+                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
+                    item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8,
+                                                                 bottom: 0, trailing: 8)
+#warning("absolute")
+                    let groupSize = NSCollectionLayoutSize(widthDimension: .estimated(42 + 16),
+                                                           heightDimension: .estimated(84))
+                    
+                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                                 subitems: [item])
+
+                    group.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 8,
+                                                                 bottom: 0, trailing: 8)
+
+                    let section = NSCollectionLayoutSection(group: group)
+                    section.orthogonalScrollingBehavior = .continuous
+                    section.boundarySupplementaryItems = [headerItem]
+//                                                          bottomLineItem]
+
+                    section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16,
+                                                                    bottom: 24, trailing: 16)
+
+                    return section
+
+                case .dailyWeatherSection:
+                    // MARK: Categories Section Layout
+                    let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                          heightDimension: .fractionalHeight(1))
+                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+//                    let availableLayoutWidth = layoutEnvironment.container.effectiveContentSize.width
+//                    let groupWidth = availableLayoutWidth * 0.92
+//                    let remainingWidth = availableLayoutWidth - groupWidth
+//                    let halfOfRemainingWidth = remainingWidth / 2.0
+//                    let nonCategorySectionItemInset = CGFloat(4)
+//                    let itemLeadingAndTrailingInset = halfOfRemainingWidth + nonCategorySectionItemInset
+
+                    item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 0,
+                                                                 bottom: 8, trailing: 0)
+
+                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                           heightDimension: .estimated(66))
+                    let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize,
+                                                                 subitems: [item])
+//                    group.contentInsets = NSDirectionalEdgeInsets(top: 50, leading: 0,
+//                                                                  bottom: 0, trailing: 6)
+
+                    let section = NSCollectionLayoutSection(group: group)
+                    section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16,
+                                                                    bottom: 20, trailing: 16)
+
+                    section.boundarySupplementaryItems = [headerItem]
+
+                    return section
+            }
+        }
+
+        return layout
+    }
+
+    func configureDataSource() {
+        dataSource = .init(collectionView: collectionView, cellProvider: { [weak self]
+            (collectionView, indexPath, item) -> UICollectionViewCell? in
             guard let self = self else { return nil }
             let section = self.sections[indexPath.section]
             switch section {
@@ -199,55 +311,115 @@ public final class WeathersViewController: UICollectionViewController {
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CurrentWeatherViewCell.identifier,
                                                                       for: indexPath)
                             as? CurrentWeatherViewCell,
-                        case .currentWeatherItem(let currentWeather) = item
-                            //                        let currentWeather = self.viewModel.currentWeather
+                        case .currentWeatherItem(let currentWeather) = self.currentWeatherItem
                     else {
                         return nil
                     }
 
-                    //                    if cell.formatter == nil {
-                    //                        cell.formatter = formatter
-                    //                    }
-
                     cell.setup(with: currentWeather)
-                    //                               formatter: self.formatter)
-                    //                               timeFormatter: self.viewModel.timeFormatter,
-                    //                               timestampFormatter: self.viewModel.datetimeFormatter)
-                    
-                    //                    cell.setupMinMaxTemperature(min: 100, max: 150)
 
                     return cell
+                case .hourlyWeatherSection:
 
-                case .hourWeatherSection:
+//                    print(indexPath)
                     guard
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HourlyWeatherViewCell.identifier,
                                                                       for: indexPath)
                             as? HourlyWeatherViewCell,
-                        case .hourlyWeatherItem(let hourlyWeatherItem) = item
+                        case .hourlyWeatherItem(let hourlytWeather) = self.hourlyWeatherItems[indexPath.item]
                     else {
                         return nil
                     }
 
-                    cell.setup(with: hourlyWeatherItem[indexPath.item])
+                    cell.setup(with: hourlytWeather)
 
                     return cell
-                default:
-                    fatalError("Not yet implemented.")
+                case .dailyWeatherSection:
+                    guard
+                        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DailyWeatherViewCell.identifier,
+                                                                      for: indexPath)
+                            as? DailyWeatherViewCell,
+                        case .dailyWeatherItem(let dailyWeather) = self.dailyWeatherItems[indexPath.item]
+                    else {
+                        return nil
+                    }
+
+                    cell.setup(with: dailyWeather)
+
+                    return cell
+
             }
         })
 
+        dataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath -> UICollectionReusableView? in
+            switch kind {
+                case SupplementaryViewKind.hourlyWeatherHeader:
+//                    let section = self.sections[indexPath.section]
+//                    let sectionName: String
+//                    switch section {
+//                        case .currentWeatherSection:
+//                            return nil
+//                        case .hourlyWeatherSection(let name):
+//                            sectionName = name
+//                        case .dailyWeatherSection:
+                    //                            sectionName = "Top Categories"
+                    //                    }
+                    guard
+                        let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: SupplementaryViewKind.hourlyWeatherHeader,
+                                                                                         withReuseIdentifier: WeatherSectionHeaderView.identifier,
+                                                                                         for: indexPath)
+                            as? WeatherSectionHeaderView
+                    else {
+                        return nil
+                    }
 
+//                    headerView.setup(with: self.viewModel.currentWeather!)
 
-        // MARK: Snapshot Definition
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-        if let currentWeather = self.viewModel.currentWeather {
-            snapshot.appendSections([.currentWeatherSection])
-            snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
+                    return headerView
+
+//                case SupplementaryViewKind.topLine, SupplementaryViewKind.bottomLine:
+//                    let lineView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: LineView.reuseIdentifier, for: indexPath) as! LineView
+//                    return lineView
+                case SupplementaryViewKind.dailyWeatherHeader:
+                    guard
+                        let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: SupplementaryViewKind.dailyWeatherHeader,
+                                                                                         withReuseIdentifier: WeatherSectionHeaderView.identifier,
+                                                                                         for: indexPath)
+                            as? WeatherSectionHeaderView
+                    else {
+                        return nil
+                    }
+
+                    //                    headerView.setup(with: self.viewModel.currentWeather!)
+
+                    return headerView
+
+                default:
+                    return nil
+            }
         }
 
-        sections = snapshot.sectionIdentifiers
 
-        dataSource.apply(snapshot)
+//        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+//        snapshot.appendSections([.promoted])
+//
+//        guard let current = self.viewModel.currentWeather else { return }
+//        let currentWeather = Item.currentWeatherItem(current)
+//        snapshot.appendItems([currentWeather], toSection: .promoted)
+//
+//        let popularSection = Section.standard("Popular this week")
+//        let essentialSection = Section.standard("Essential picks")
+//        let categoriesSection = Section.categories
+//
+//        let weathers = self.viewModel.hourlyWeather.map { Item.hourlyWeatherItem($0)}
+//        snapshot.appendSections([popularSection, categoriesSection])
+//        snapshot.appendItems(weathers, toSection: popularSection)
+////        snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
+//        snapshot.appendItems(weathers, toSection: categoriesSection)
+//
+//        sections = snapshot.sectionIdentifiers
+//        dataSource.apply(snapshot)
+
     }
 
     //    private func bindTextFieldsToViewModel()
@@ -261,52 +433,127 @@ public final class WeathersViewController: UICollectionViewController {
                 .store(in: &subscriptions)
         }
 
-        func bindViewModelToCurrentWeather() {
+        func bindViewModelToWeathers() {
             viewModel
                 .$currentWeather
                 .removeDuplicates()
 //                .zip(viewModel.$hourlyWeather)//, viewModel.$dailyWeather)
                 .compactMap { $0 }
-//                .map { Item.currentWeatherItem($0) }
-                .receive(on: DispatchQueue.main)
-                .sink { currentWeather in
-
-
-                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-//                    if let currentWeather = currentWeather {
-                        snapshot.appendSections([.currentWeatherSection])
-                        snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
-//                    }
-
-                    self.sections = snapshot.sectionIdentifiers
-
-                    self.dataSource.apply(snapshot)
-
-
-                }
-                .store(in: &subscriptions)
-//                .assign(to: &$currentWeatherItem)
-        }
+                .map { Item.currentWeatherItem($0) }
+//                .receive(on: DispatchQueue.main)
+//                .sink { currentWeather in
 //
-//        func bindToCollectionView() {
-//            $currentWeatherItem
-//                .sink { currentWeatherItem in
+//
 //                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-//                    if case .currentWeatherItem(let currentWeather) = currentWeatherItem {
-//                    snapshot.appendSections([.currentWeatherSection])
-//                    snapshot.appendItems([.currentWeather], toSection: .currentWeatherSection)
-//                                        }
+////                    if let currentWeather = currentWeather {
+//                        snapshot.appendSections([.currentWeatherSection])
+//                        snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
+////                    }
+//
+//
+//                    «let popularSection = Section.standard("Popular this week")
+//                    let essentialSection = Section.standard("Essential picks")
+//
+//                    snapshot.appendSections([.hourWeatherSection])
+//                    snapshot.appendItems(Item.popularApps, toSection: .hourWeatherSection)
+//                    snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
+//
 //
 //                    self.sections = snapshot.sectionIdentifiers
 //
 //                    self.dataSource.apply(snapshot)
+//
+//
 //                }
 //                .store(in: &subscriptions)
-//        }
+                .assign(to: &$currentWeatherItem)
+
+            viewModel
+                .$hourlyWeather
+                .removeDuplicates()
+                .map { weathers in
+                    weathers.map {
+                        Item.hourlyWeatherItem($0)
+                    }
+                }
+                .assign(to: &$hourlyWeatherItems)
+
+            viewModel
+                .$dailyWeather
+                .removeDuplicates()
+                .map { weathers in
+                    weathers.map {
+                        Item.dailyWeatherItem($0)
+                    }
+                }
+                .assign(to: &$dailyWeatherItems)
+        }
+//
+        func bindToCollectionView() {
+            Publishers.MergeMany(
+//                $currentWeatherItem.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
+//                $hourlyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
+//                $dailyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher()
+                $currentWeatherItem.eraseTypeAndDuplicates(),
+                $hourlyWeatherItems.eraseTypeAndDuplicates(),
+                $dailyWeatherItems.eraseTypeAndDuplicates()
+
+            )
+            .debounce(for: .seconds(0.1), scheduler: RunLoop.current)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                //                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+//
+////                    if case .currentWeatherItem(let currentWeather) = self.currentWeatherItem {
+////                    if let currentWeatherItem = self.currentWeatherItem {
+////                        snapshot.appendSections([.currentWeatherSection])
+////                        snapshot.appendItems([currentWeatherItem], toSection: .currentWeatherSection)
+////                    }
+//
+////                    if case .hourlyWeatherItem(let hourlyWeathers) = self.hourlyWeatherItem {
+////                        snapshot.appendSections([.hourlyWeatherSection])
+////                    snapshot.appendItems(self.hourlyWeatherItems, toSection: .hourlyWeatherSection)
+////                    }
+//
+//
+//                    //                    snapshot.appendSections([.hourWeatherSection])
+//                    //                    snapshot.appendItems(Item.popularApps, toSection: .hourWeatherSection)
+//                    //                    snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
+//
+//                    self.sections = snapshot.sectionIdentifiers
+//
+//                    self.dataSource.apply(snapshot)
+
+                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+
+
+                    if let currentWeatherItem = self.currentWeatherItem {
+                        snapshot.appendSections([.currentWeatherSection])
+                        snapshot.appendItems([currentWeatherItem], toSection: .currentWeatherSection)
+                    }
+
+
+//                    let popularSection = Section.hourlyWeatherSection("Popular this week")
+//                    let essentialSection = Section.hourlyWeatherSection("Essential picks")
+//                    let categoriesSection = Section.dailyWeatherSection
+
+
+//                    let weathers = self.viewModel.hourlyWeather.map { Item.hourlyWeatherItem($0)}
+//                    let weathers2 = Array(weathers.prefix(10))
+                    snapshot.appendSections([.hourlyWeatherSection, .dailyWeatherSection])
+                    snapshot.appendItems(self.hourlyWeatherItems, toSection: .hourlyWeatherSection)
+                    snapshot.appendItems(self.dailyWeatherItems, toSection: .dailyWeatherSection)
+
+                    self.sections = snapshot.sectionIdentifiers
+                    self.dataSource.apply(snapshot)
+                }
+                .store(in: &subscriptions)
+        }
         
         bindViewModelToErrors()
-        bindViewModelToCurrentWeather()
-//        bindToCollectionView()
+        bindViewModelToWeathers()
+        bindToCollectionView()
 
 
     }

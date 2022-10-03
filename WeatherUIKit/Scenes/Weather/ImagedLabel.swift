@@ -29,14 +29,14 @@ final class ImagedLabel: UIStackView {
     }
     
     // MARK: - Views
-        let imageView: UIImageView
-        let label: UILabel
+    let imageView: UIImageView
+    let label: UILabel
 
     // MARK: - LifeCicle
 
     init(imageView: UIImageView,
-                  label: UILabel,
-                  spacing: CGFloat)
+         label: UILabel,
+         spacing: CGFloat)
     {
         self.imageView = imageView
         self.label = label

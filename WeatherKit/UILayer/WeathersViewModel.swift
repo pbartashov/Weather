@@ -10,9 +10,14 @@ import Foundation
 
 public final class WeathersViewModel {
 
+    enum ForecastTimeHorizon {
+        case small
+        case large
+    }
+
     // MARK: - Properties
 
-    private let formatter: UnitsFormatter
+    private let formatterContainer: UnitsFormatterContainer
 //    private lazy var formatterPublisher = CurrentValueSubject<UnitsFormatter, Never>(formatter)
 //    public let timeFormatter: DateFormatter = {
 //        let timeFormatter = DateFormatter()
@@ -28,8 +33,8 @@ public final class WeathersViewModel {
 //        return datetimeFormatter
 //    }()
 
-
-    public let location: WeatherLocation
+    private var forecastTimeHorizon: ForecastTimeHorizon = .large
+    public private(set) var location: WeatherLocation
 
     @Published public var currentWeather: WeatherViewModel?
     @Published public var hourlyWeather: [WeatherViewModel] = []
@@ -53,12 +58,16 @@ public final class WeathersViewModel {
     public init(
         location: WeatherLocation,
         weatherRepository: WeatherRepositoryProtocol,
-        unitsFormatter: UnitsFormatter = UnitsFormatter()
+        unitsFormatterContainer: UnitsFormatterContainer = UnitsFormatterContainer()
 
     ) {
         self.location = location
         self.weatherRepository = weatherRepository
-        self.formatter = unitsFormatter
+        self.formatterContainer = unitsFormatterContainer
+
+        if let timeZone = location.timeZone {
+            self.formatterContainer.setup(timeZone: timeZone)
+        }
 
    
         bindToRepository()
@@ -125,20 +134,20 @@ public final class WeathersViewModel {
 //    }
 
     private func bindToRepository() {
-        let formatterPublisher = formatter.didChangedPublisher
-            .compactMap { [weak self] in self?.formatter }
+        let formatterPublisher = formatterContainer.didChangedPublisher
+            .compactMap { [weak self] in
+                self?.formatterContainer.makeUnitsFormatter()
+            }
 
-        weatherRepository
-            .weathersPublisher
+        weatherRepository.weathersPublisher
             .compactMap { $0[.current]?.first }
             .combineLatest(formatterPublisher)
             .map { (weather, formatter) in
-                WeatherViewModel(weather: weather, formatter: UnitsFormatter())
+                WeatherViewModel(weather: weather, formatter: formatter)
             }
             .assign(to: &$currentWeather)
 
-        weatherRepository
-            .weathersPublisher
+        weatherRepository.weathersPublisher
             .compactMap { $0[.hourly] }
             .combineLatest(formatterPublisher)
             .map { (weathers, formatter) in
@@ -146,17 +155,28 @@ public final class WeathersViewModel {
             }
             .assign(to: &$hourlyWeather)
 
-        weatherRepository
-            .weathersPublisher
+        weatherRepository.weathersPublisher
             .compactMap { $0[.daily] }
             .combineLatest(formatterPublisher)
             .map { (weathers, formatter) in
                 weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
             }
             .assign(to: &$dailyWeather)
+
+        weatherRepository.weatherContainerPublisher
+            .map(\.timezone)
+//            .assign(to: \.timeZone, on: location)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                self.location.timeZone = $0
+                self.formatterContainer.setup(timeZone: $0)
+            }
+            .store(in: &subscriptions)
     }
 
-//    private func bindToFormatters() {
+
+
+//    private func bindToFormatters() {timezone
 //        formatter.didChangedPublisher
 //            .sink {
 //                formatterPublisher.send(formatter)
@@ -172,8 +192,16 @@ public final class WeathersViewModel {
 //    ) async {
         do {
 //            currentWeather = try await weatherRepository.fetchCurrentDayWeather(location: location)
+//            let since: Date = .now
+//            let till: Date
+//
+//            switch forecastTimeHorizon {
+//                case .small:
+//                    till = since.advanced(by: 5)
+//                case.large:
+//            }
 
-            try await weatherRepository.startFetchingWeather(for: location)
+            try await weatherRepository.startFetchingWeather(for: location, dateInterval: forecastTimeHorizon.dateInterval)
 //            configureDateFormatters(with: Settings.shared.timeFormat)
 //            print(currentWeather)
 //            print(currentWeather?.sunsetEpoch)
@@ -298,3 +326,65 @@ public final class WeathersViewModel {
 //
 //
 //}
+
+extension WeathersViewModel.ForecastTimeHorizon {
+    var dateInterval: DateInterval {
+        let start: Date = .now + .days(1)
+        let days: Int
+
+        switch self {
+            case .small:
+                days = 6
+            case .large:
+                days = 14
+
+                #warning("25")
+        }
+
+        let end = start + .days(days)
+
+        return DateInterval(start: start, end: end)
+
+//        let start: Date = .now + .days(1)
+//        let dateComponent: DateComponents
+//
+//        switch self {
+//            case .small:
+//                dateComponent = DateComponents(day: 7)
+//
+//            case .large:
+//                dateComponent = DateComponents(day: 15)
+//        }
+//
+//        let end = Calendar.current.date(byAdding: dateComponent, to: start) ?? Date()
+//
+//        return DateInterval(start: start, end: end)
+
+//        let start: Date = .now
+//        let timeInterval: TimeInterval
+//
+//        switch self {
+//            case .small:
+//                timeInterval = 60 * 60 * 24 * 7
+//
+//            case .large:
+//                timeInterval = 60 * 60 * 24 * 15
+//        }
+//
+//        let end = start.addingTimeInterval(TimeInterval)
+//
+//        return DateInterval(start: start, end: end)
+    }
+}
+
+//extension Date {
+//    static func + (lhs: Date, rhs: Date) -> Date {
+//
+//    }
+//}
+
+extension TimeInterval {
+    static func days(_ count: Int) -> TimeInterval {
+        return 60 * 60 * 24 * Double(count)
+    }
+}

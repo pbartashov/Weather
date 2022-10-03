@@ -9,8 +9,8 @@ import WeatherKit
 
 enum Item: Hashable {
     case currentWeatherItem(WeatherViewModel)
-    case hourlyWeatherItem([WeatherViewModel])
-    case dailyWeatherItem([WeatherViewModel])
+    case hourlyWeatherItem(WeatherViewModel)
+    case dailyWeatherItem(WeatherViewModel)
 
 //    var currentWeather: WeatherViewModel? {
 //        if case .currentWeather(let currentWeather) = self {

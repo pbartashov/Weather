@@ -5,8 +5,6 @@
 //  Created by Павел Барташов on 02.10.2022.
 //
 
-import Foundation
-
 public struct WeatherViewModel {
 
     // MARK: - Properties
@@ -39,6 +37,10 @@ public struct WeatherViewModel {
         formatter.format(speed: weather.windspeed)
     }
 
+    public var precipcover: String {
+        formatter.format(precipcover: weather.precipcover)
+    }
+
     public var sunriseEpoch: String {
         formatter.format(time: weather.sunriseEpoch)
     }
@@ -49,6 +51,10 @@ public struct WeatherViewModel {
 
     public var datetimeEpoch: String {
         formatter.format(dateTime: weather.datetimeEpoch)
+    }
+
+    public var dayMonth: String {
+        formatter.format(dayMonth: weather.datetimeEpoch)
     }
 
     public var time: String {
@@ -69,6 +75,20 @@ public struct WeatherViewModel {
     
     public var conditions: String {
         weather.conditions
+    }
+
+
+
+
+    public var icon: WeatherIcon {
+        WeatherIcon(rawValue: weather.icon) ?? .none
+    }
+
+    public var isHighLighted: Bool {
+        let weatherHour = Calendar.current.component(.hour, from: weather.datetimeEpoch)
+        let nowHour = Calendar.current.component(.hour, from: .now)
+
+        return weatherHour == nowHour
     }
 
 //    public var hours: [Weather]?

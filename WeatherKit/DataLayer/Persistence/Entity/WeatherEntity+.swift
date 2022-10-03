@@ -17,6 +17,7 @@ extension WeatherEntity: DomainModel {
                 humidity: humidity,
                 cloudcover: cloudcover,
                 windspeed: windspeed,
+                precipcover: precipcover,
                 sunriseEpoch: sunriseEpoch ?? Date(),
                 sunsetEpoch: sunsetEpoch ?? Date(),
                 datetimeEpoch: datetimeEpoch ?? Date(),
@@ -24,7 +25,8 @@ extension WeatherEntity: DomainModel {
                 tempmax: tempmax,
                 tempmin: tempmin,
                 conditions: conditions ?? "",
-                hours: nil)
+                icon: icon ?? "",
+                hourlyWeathers: nil)
     }
 
     func copyDomainModel(model: Weather) {
@@ -45,6 +47,7 @@ extension WeatherEntity: DomainModel {
         humidity = Double(model.humidity)
         cloudcover = Double(model.cloudcover)
         windspeed = Double(model.windspeed)
+        precipcover = Double(model.precipcover)
         sunriseEpoch = model.sunriseEpoch
         sunsetEpoch = model.sunsetEpoch
         datetimeEpoch  = model.datetimeEpoch
@@ -52,6 +55,7 @@ extension WeatherEntity: DomainModel {
         tempmax = model.tempmax
         tempmin = model.tempmin
         conditions = model.conditions
+        icon = model.icon
     }
 }
 

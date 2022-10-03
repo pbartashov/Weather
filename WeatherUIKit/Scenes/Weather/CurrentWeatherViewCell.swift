@@ -19,7 +19,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
     private let arcView: UIImageView = {
         let image = UIImage(named: "Arc")
         let imageView = UIImageView(image: image)
-        imageView.tintColor = .brandYellowColor
+        imageView.tintColor = .brandYellow
 
         return imageView
     }()
@@ -27,7 +27,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
     private let sunriseView: UIImageView = {
         let image = UIImage(named: "Sunrise")
         let imageView = UIImageView(image: image)
-        imageView.tintColor = .brandYellowColor
+        imageView.tintColor = .brandYellow
 
         return imageView
     }()
@@ -45,7 +45,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
     private let sunsetView: UIImageView = {
         let image = UIImage(named: "Sunset")
         let imageView = UIImageView(image: image)
-        imageView.tintColor = .brandYellowColor
+        imageView.tintColor = .brandYellow
 
         return imageView
     }()
@@ -138,7 +138,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
         let label = UILabel()
 
         label.font = .systemFont(ofSize: 16, weight: .bold)
-        label.textColor = .brandYellowColor
+        label.textColor = .brandYellow
         label.textAlignment = .center
 
         return label

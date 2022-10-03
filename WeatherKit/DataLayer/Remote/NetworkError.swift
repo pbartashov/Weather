@@ -8,16 +8,20 @@
 import Foundation
 
 public enum NetworkError: LocalizedError {
-  case invalidServerResponse
-  case invalidURL
+    case invalidServerResponse
+    case invalidURL
+    case decoderNotConfigured
 
-  public var errorDescription: String? {
-    switch self {
-    case .invalidServerResponse:
-      return "The server returned an invalid response."
+    public var errorDescription: String? {
+        switch self {
+            case .invalidServerResponse:
+                return "The server returned an invalid response."
 
-    case .invalidURL:
-      return "URL string is malformed."
+            case .invalidURL:
+                return "URL string is malformed."
+
+            case .decoderNotConfigured:
+                return "JSONDecoder is not configured."
+        }
     }
-  }
 }

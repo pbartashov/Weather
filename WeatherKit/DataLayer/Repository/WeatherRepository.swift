@@ -34,14 +34,14 @@ public protocol WeatherRepositoryProtocol {
 //    var currentWeatherPublisher: AnyPublisher<Weather, Never> { get }
 
     var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> { get }
-
+    var weatherContainerPublisher: AnyPublisher<WeatherContainer, Never> { get }
     //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> { get }
     //    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
 
     func startFetchingWith(predicate: NSPredicate?,
                            sortDescriptors: [NSSortDescriptor]?) throws
 
-    func startFetchingWeather(for location: WeatherLocation) async throws
+    func startFetchingWeather(for location: WeatherLocation, dateInterval: DateInterval) async throws
     //    func fetchCurrentDayWeather(location: WeatherLocation) async throws -> WeatherContainer
 }
 
@@ -69,6 +69,11 @@ public final class WeatherRepository {
                            by: { $0.weatherType })
             }
             .eraseToAnyPublisher()
+    }
+
+    private let weatherContainerSubject = PassthroughSubject<WeatherContainer, Never>()
+    public var weatherContainerPublisher: AnyPublisher<WeatherContainer, Never> {
+        weatherContainerSubject.eraseToAnyPublisher()
     }
 
 //    var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> {
@@ -256,42 +261,46 @@ extension WeatherRepository: WeatherRepositoryProtocol {
     //        await fetchCurrentWeather(location: location)
     //    }
 
-    public func startFetchingWeather(for location: WeatherLocation) async throws {
+    public func startFetchingWeather(for location: WeatherLocation,
+                                     dateInterval: DateInterval
+    ) async throws {
         let predicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
 
         try repository.startFetchingWith(predicate: predicate,
                                          sortDescriptors: mainSortDescriptors)//,
 //                                         sectionNameKeyPath: "weatherTypeRaw")
 
-        try await fetchWeatherFromAPI(for: location)
+        try await fetchCurrentDayWeatherFromAPI(for: location)
+        try await fetchForecastWeatherFromAPI(for: location, dateInterval: dateInterval)
     }
 
-    private func fetchWeatherFromAPI(for location: WeatherLocation
+    private func fetchCurrentDayWeatherFromAPI(for location: WeatherLocation
                                      //        latitude: Double,
                                      //                                 longitude: Double
     ) async throws {
         let weatherContainer: WeatherContainer = try await requestManager.perform(
-            WeatherRequest.getCurrentDayWeatherFor(latitude: location.latitude,
-                                                   longitude: location.longitude)
-
+            WeatherRequest.getCurrentDayWeatherFor(location: location)
         )
+        weatherContainerSubject.send(weatherContainer)
 
         guard let todayWeather = weatherContainer.days.first else { return }
-
-        if let currentWeather = weatherContainer.currentConditions  {
-
-            try await store([currentWeather.filledWith(weatherType: .current,
-                                                       longitude: location.longitude,
-                                                       latitude: location.latitude)])
+        print(todayWeather)
+        if let currentWeather = weatherContainer.currentWeather  {
+            print(currentWeather)
+            try await store([currentWeather])
         }
+//            try await store([currentWeather.filledWith(weatherType: .current,
+//                                                       longitude: location.longitude,
+//                                                       latitude: location.latitude)])
+//        }
 
-        guard var hourlyWeather = todayWeather.hours else { return }
-
-        hourlyWeather = hourlyWeather.map { weather in
-            weather.filledWith(weatherType: .hourly,
-                               longitude: location.longitude,
-                               latitude: location.latitude)
-        }
+        guard let hourlyWeather = todayWeather.hourlyWeathers else { return }
+        print(hourlyWeather)
+//        hourlyWeather = hourlyWeather.map { weather in
+//            weather.filledWith(weatherType: .hourly,
+//                               longitude: location.longitude,
+//                               latitude: location.latitude)
+//        }
 
         try await store(hourlyWeather)
 
@@ -303,6 +312,17 @@ extension WeatherRepository: WeatherRepositoryProtocol {
         //            for var animal in animalsContainer.animals {
         //                animal.toManagedObject()
         //            }
+    }
+
+    private func fetchForecastWeatherFromAPI(for location: WeatherLocation,
+                                             dateInterval: DateInterval
+    ) async throws {
+
+        let weatherContainer: WeatherContainer = try await requestManager.perform(
+            WeatherRequest.getForecastWeatherFor(location: location, dateInterval: dateInterval)
+        )
+
+            try await store(weatherContainer.days)
     }
 
     private func store(_ weathers: [Weather]) async throws {
