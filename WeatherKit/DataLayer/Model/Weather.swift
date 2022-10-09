@@ -7,8 +7,8 @@
 
 import Foundation
 
-// MARK: - WeatherContainer
-public struct WeatherContainer {
+// MARK: - WeatherPack
+public struct WeatherPack {
 //    let queryCost: Int?
     let latitude, longitude: Double
 //    let resolvedAddress, address
@@ -49,7 +49,7 @@ public struct WeatherContainer {
 
 }
 
-extension WeatherContainer: Decodable {
+extension WeatherPack: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -79,7 +79,7 @@ extension WeatherContainer: Decodable {
 
 //        dateFormatter.timeZone = TimeZone(identifier: "timezone")
 
-        guard let key = WeatherContainer.boxUserInfoKey,
+        guard let key = WeatherPack.boxUserInfoKey,
               let box = decoder.userInfo[key] as? ParserBox
         else {
             throw NetworkError.decoderNotConfigured
@@ -145,10 +145,10 @@ public struct Weather {
 
     public let humidity: Double
     public let cloudcover: Double
-    public let windspeed: Double
+    public let windspeed, winddir: Double
     public let precipcover: Double
     public let sunriseEpoch, sunsetEpoch, datetimeEpoch: Date
-    public let temp, tempmax, tempmin: Double
+    public let temp, tempmax, tempmin, feelslike: Double
     public let conditions: String
     public let icon: String
     public let hourlyWeathers: [Weather]?
@@ -187,10 +187,10 @@ public struct Weather {
     enum CodingKeys: String, CodingKey {
         case humidity
         case cloudcover
-        case windspeed, precipcover
+        case windspeed, winddir, precipcover
         case sunriseEpoch, sunsetEpoch, datetimeEpoch
 //        case sunrise, sunset, datetime
-        case temp, tempmax, tempmin
+        case temp, tempmax, tempmin, feelslike
         case conditions, icon
         case hours
     }
@@ -250,9 +250,11 @@ extension Weather: Decodable {
         humidity = try container.decodeIfPresent(Double.self, forKey: .humidity) ?? 0.0
         cloudcover = try container.decodeIfPresent(Double.self, forKey: .cloudcover) ?? 0.0
         windspeed = try container.decodeIfPresent(Double.self, forKey: .windspeed) ?? 0.0
+        winddir = try container.decodeIfPresent(Double.self, forKey: .winddir) ?? 0.0
         temp = try container.decodeIfPresent(Double.self, forKey: .temp) ?? 0.0
         tempmax = try container.decodeIfPresent(Double.self, forKey: .tempmax) ?? 0.0
         tempmin = try container.decodeIfPresent(Double.self, forKey: .tempmin) ?? 0.0
+        feelslike = try container.decodeIfPresent(Double.self, forKey: .feelslike) ?? 0.0
         precipcover = try container.decodeIfPresent(Double.self, forKey: .precipcover) ?? 0.0
 
         conditions = try container.decodeIfPresent(String.self, forKey: .conditions) ?? ""
@@ -274,7 +276,7 @@ extension Weather: Decodable {
         datetimeEpoch = try container.decodeIfPresent(Date.self, forKey: .datetimeEpoch) ?? Date(timeIntervalSince1970: 0)
 //        datetimeEpoch = Date()
 
-        guard let key = WeatherContainer.boxUserInfoKey,
+        guard let key = WeatherPack.boxUserInfoKey,
               let box = decoder.userInfo[key] as? ParserBox
         else {
             throw NetworkError.decoderNotConfigured
@@ -284,7 +286,7 @@ extension Weather: Decodable {
         latitude = box.latitude
         longitude = box.longitude
 
-        print(weatherType)
+//        print(weatherType)
 
         if container.contains(.hours) {
             box.weatherType = .hourly

@@ -1,5 +1,5 @@
 //
-//  MainViewController.swift
+//  WeathersViewController.swift
 //  Weather
 //
 //  Created by Павел Барташов on 17.09.2022.
@@ -9,22 +9,30 @@ import UIKit
 import WeatherKit
 import Combine
 
+
+protocol HourlyWeatherViewControllerFactory {
+//    func makeHourlyWeatherViewController(for city: String, weathers: [WeatherViewModel]) -> HourlyWeatherViewController
+    func makeHourlyWeatherViewController(for city: String,
+                                         weathers: AnyPublisher<[WeatherViewModel], Never>) -> HourlyWeatherViewController
+}
+
+
 public final class WeathersViewController: UICollectionViewController {
 
     // MARK: Section Definitions
     enum Section: Hashable {
+        //        var id: UUID { UUID() }
+        case loading
         case currentWeatherSection
         case hourlyWeatherSection
-        case dailyWeatherSection
+        case dailyWeatherSection([WeatherViewModel])
     }
 
     enum SupplementaryViewKind {
         static let hourlyWeatherHeader = "hourly"
         static let dailyWeatherHeader = "daily"
-//        static let bottomLine = "bottomLine"
+        //        static let bottomLine = "bottomLine"
     }
-
-
 
     // MARK: - Properties
 
@@ -32,6 +40,7 @@ public final class WeathersViewController: UICollectionViewController {
     //    var formatter: WeartherFormatterProtocol
 
     private var subscriptions = Set<AnyCancellable>()
+    private var presentHourlyWeatherSubscription: AnyCancellable?
     
     public var locationID: Int {
         viewModel.location.index
@@ -41,36 +50,43 @@ public final class WeathersViewController: UICollectionViewController {
 
     private var sections = [Section]()
 
-    @Published private var currentWeatherItem: Item?
-    @Published private var hourlyWeatherItems: [Item] = []
-    @Published private var dailyWeatherItems: [Item] = []
+        @Published private var currentWeatherItem: Item?
+        @Published private var hourlyWeatherItems: [Item]?
+    //    @Published private var dailyWeatherItems: [Item] = []
 
+//    @Published private var currentWeatherSection: Section?
+//    @Published private var hourlyWeatherSection: Section?
+    @Published private var dailyWeatherSection: Section?
 
+    // Factories
+    private let viewControllerFactory: HourlyWeatherViewControllerFactory
 
     // MARK: - Views
 
-//    private let currentWeatherViewCell: CurrentWeatherViewCell = {
-//        let cell = CurrentWeatherViewCell()
-//        return cell
-//    }()
+    //    private let currentWeatherViewCell: CurrentWeatherViewCell = {
+    //        let cell = CurrentWeatherViewCell()
+    //        return cell
+    //    }()
 
-//    private let hourlyWeatherHeaderView: WeatherSectionHeaderView = {
-//        let view = WeatherSectionHeaderView()
-//        return view
-//    }()
-//
-//    private let dailyWeatherHeaderView: WeatherSectionHeaderView = {
-//        let view = WeatherSectionHeaderView()
-//        return view
-//    }()
+    //    private let hourlyWeatherHeaderView: WeatherSectionHeaderView = {
+    //        let view = WeatherSectionHeaderView()
+    //        return view
+    //    }()
+    //
+    //    private let dailyWeatherHeaderView: WeatherSectionHeaderView = {
+    //        let view = WeatherSectionHeaderView()
+    //        return view
+    //    }()
 
     // MARK: - LifeCicle
 
-    init(viewModel: WeathersViewModel
+    init(viewModel: WeathersViewModel,
+         viewControllerFactory: HourlyWeatherViewControllerFactory
          //         weatherFormatter: WeartherFormatterProtocol
     ) {
 
         self.viewModel = viewModel
+        self.viewControllerFactory = viewControllerFactory
         //        self.formatter = weatherFormatter
 
         super.init(nibName: nil, bundle: nil)
@@ -134,7 +150,7 @@ public final class WeathersViewController: UICollectionViewController {
 
         //        bindTextFieldsToViewModel()
         bindViewModelToViews()
-//        bindSettings()
+        //        bindSettings()
 
 
         Task {
@@ -142,7 +158,14 @@ public final class WeathersViewController: UICollectionViewController {
         }
     }
 
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
 
+        navigationController?.navigationBar.titleTextAttributes = [
+            NSAttributedString.Key.foregroundColor: UIColor.brandTextColor,
+            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 18, weight: .bold)
+        ]
+    }
 
 
     // MARK: - Metods
@@ -150,6 +173,11 @@ public final class WeathersViewController: UICollectionViewController {
     private func configureCollectionView() {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         // Register cell classes
+
+        collectionView.register(LoadingCell.self,
+                                forCellWithReuseIdentifier: LoadingCell.identifier)
+
+
         collectionView.register(CurrentWeatherViewCell.self,
                                 forCellWithReuseIdentifier: CurrentWeatherViewCell.identifier)
 
@@ -166,63 +194,93 @@ public final class WeathersViewController: UICollectionViewController {
         collectionView.register(WeatherSectionHeaderView.self,
                                 forSupplementaryViewOfKind: SupplementaryViewKind.dailyWeatherHeader,
                                 withReuseIdentifier: WeatherSectionHeaderView.identifier)
-//        collectionView.register(LineView.self, forSupplementaryViewOfKind:
-//                                    SupplementaryViewKind.topLine, withReuseIdentifier:
-//                                    LineView.reuseIdentifier)
-//        collectionView.register(LineView.self, forSupplementaryViewOfKind:
-//                                    SupplementaryViewKind.bottomLine, withReuseIdentifier:
-//                                    LineView.reuseIdentifier)
+        //        collectionView.register(LineView.self, forSupplementaryViewOfKind:
+        //                                    SupplementaryViewKind.topLine, withReuseIdentifier:
+        //                                    LineView.reuseIdentifier)
+        //        collectionView.register(LineView.self, forSupplementaryViewOfKind:
+        //                                    SupplementaryViewKind.bottomLine, withReuseIdentifier:
+        //                                    LineView.reuseIdentifier)
 
         collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.contentInset = .init(top: 112, left: 0, bottom: 0, right: 0)
-//        collectionView.bounces = false
-//        collectionView.alwaysBounceHorizontal = false
+        //        collectionView.bounces = false
+        //        collectionView.alwaysBounceHorizontal = false
         configureDataSource()
     }
 
-    func createLayout() -> UICollectionViewLayout {
+//    private func createMainSection() -> NSCollectionLayoutSection {
+//
+//    }
+
+
+    private func createLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
             guard !self.sections.isEmpty else { return nil }
 
-            let headerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
+            let headerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                         heightDimension: .estimated(44))
-            let headerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
-                                                                         elementKind: SupplementaryViewKind.hourlyWeatherHeader,
-                                                                         alignment: .topTrailing)
+            let hourlyWeatherHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
+                                                                                      elementKind: SupplementaryViewKind.hourlyWeatherHeader,
+                                                                                      alignment: .topTrailing)
 
-//            let lineItemHeight = 1 / layoutEnvironment.traitCollection.displayScale
-//            let lineItemSize =
-//            NSCollectionLayoutSize(widthDimension:
-//                    .fractionalWidth(0.92),
-//                                   heightDimension: .absolute(lineItemHeight))
-//
-//            let topLineItem =
-//            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
-//                                                            lineItemSize, elementKind: SupplementaryViewKind.topLine,
-//                                                        alignment: .top)
-//
-//            let bottomLineItem =
-//            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
-//                                                            lineItemSize, elementKind: SupplementaryViewKind.bottomLine,
-//                                                        alignment: .bottom)
+            let dailyWeatherHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
+                                                                                     elementKind: SupplementaryViewKind.dailyWeatherHeader,
+                                                                                     alignment: .topTrailing)
 
-            let supplementaryItemContentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
-                                                                         bottom: 0, trailing: 4)
-            headerItem.contentInsets = supplementaryItemContentInsets
-//            topLineItem.contentInsets = supplementaryItemContentInsets
-//            bottomLineItem.contentInsets = supplementaryItemContentInsets
+            //            let lineItemHeight = 1 / layoutEnvironment.traitCollection.displayScale
+            //            let lineItemSize =
+            //            NSCollectionLayoutSize(widthDimension:
+            //                    .fractionalWidth(0.92),
+            //                                   heightDimension: .absolute(lineItemHeight))
+            //
+            //            let topLineItem =
+            //            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
+            //                                                            lineItemSize, elementKind: SupplementaryViewKind.topLine,
+            //                                                        alignment: .top)
+            //
+            //            let bottomLineItem =
+            //            NSCollectionLayoutBoundarySupplementaryItem(layoutSize:
+            //                                                            lineItemSize, elementKind: SupplementaryViewKind.bottomLine,
+            //                                                        alignment: .bottom)
+
+            //            let supplementaryItemContentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
+            //                                                                         bottom: 0, trailing: 4)
+            //            hourlyWeatherHeaderItem.contentInsets = supplementaryItemContentInsets
+            //            dailyWeatherHeaderItem.contentInsets = supplementaryItemContentInsets
+            //            topLineItem.contentInsets = supplementaryItemContentInsets
+            //            bottomLineItem.contentInsets = supplementaryItemContentInsets
 
             let section = self.sections[sectionIndex]
             switch section {
+                case .loading:
+                    // MARK: Loading Section Layout
+//                    let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+//                                                          heightDimension: .fractionalHeight(1))
+//
+//                    let item = NSCollectionLayoutItem(layoutSize: itemSize)
+//
+//                    let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
+//                                                           heightDimension: .estimated(212))
+//                    let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+//                                                                   subitems: [item])
+//
+//                    let section = NSCollectionLayoutSection(group: group)
+//                    section.orthogonalScrollingBehavior = .groupPagingCentered
+//
+//                    section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0,
+//                                                                    bottom: 8, trailing: 0)
+//
+//                    return section
+
+                    fallthrough
+
                 case .currentWeatherSection:
-                    // MARK: Promoted Section Layout
+                    // MARK: Current Weather Section Layout
                     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                           heightDimension: .fractionalHeight(1))
 
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
-//                    item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
-//                                                                 bottom: 0, trailing: 4)
-#warning("absolute")
+
                     let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92),
                                                            heightDimension: .estimated(212))
                     let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
@@ -230,15 +288,16 @@ public final class WeathersViewController: UICollectionViewController {
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.orthogonalScrollingBehavior = .groupPagingCentered
-//                    section.boundarySupplementaryItems = [topLineItem,
-//                                                          bottomLineItem]
+                    //                    section.boundarySupplementaryItems = [topLineItem,
+                    //                                                          bottomLineItem]
 
                     section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0,
-                                                                    bottom: 20, trailing: 0)
+                                                                    bottom: 28, trailing: 0)
 
                     return section
 
                 case .hourlyWeatherSection:
+                    // MARK: Hourly Weather Section Layout
                     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                           heightDimension: .fractionalHeight(1))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -247,35 +306,35 @@ public final class WeathersViewController: UICollectionViewController {
 #warning("absolute")
                     let groupSize = NSCollectionLayoutSize(widthDimension: .estimated(42 + 16),
                                                            heightDimension: .estimated(84))
-                    
                     let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
-                                                                 subitems: [item])
+                                                                   subitems: [item])
 
-                    group.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 8,
-                                                                 bottom: 0, trailing: 8)
+//                    group.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 8,
+//                                                                  bottom: 0, trailing: 8)
+#warning("Attempting to add contentInsets to an item's dimension along an estimated axis")
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.orthogonalScrollingBehavior = .continuous
-                    section.boundarySupplementaryItems = [headerItem]
-//                                                          bottomLineItem]
+                    section.boundarySupplementaryItems = [hourlyWeatherHeaderItem]
+                    //                                                          bottomLineItem]
 
                     section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16,
-                                                                    bottom: 24, trailing: 16)
+                                                                    bottom: 32, trailing: 16)
 
                     return section
 
                 case .dailyWeatherSection:
-                    // MARK: Categories Section Layout
+                    // MARK: Daily Weather Section Layout
                     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                           heightDimension: .fractionalHeight(1))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
-//                    let availableLayoutWidth = layoutEnvironment.container.effectiveContentSize.width
-//                    let groupWidth = availableLayoutWidth * 0.92
-//                    let remainingWidth = availableLayoutWidth - groupWidth
-//                    let halfOfRemainingWidth = remainingWidth / 2.0
-//                    let nonCategorySectionItemInset = CGFloat(4)
-//                    let itemLeadingAndTrailingInset = halfOfRemainingWidth + nonCategorySectionItemInset
+                    //                    let availableLayoutWidth = layoutEnvironment.container.effectiveContentSize.width
+                    //                    let groupWidth = availableLayoutWidth * 0.92
+                    //                    let remainingWidth = availableLayoutWidth - groupWidth
+                    //                    let halfOfRemainingWidth = remainingWidth / 2.0
+                    //                    let nonCategorySectionItemInset = CGFloat(4)
+                    //                    let itemLeadingAndTrailingInset = halfOfRemainingWidth + nonCategorySectionItemInset
 
                     item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 0,
                                                                  bottom: 8, trailing: 0)
@@ -284,14 +343,14 @@ public final class WeathersViewController: UICollectionViewController {
                                                            heightDimension: .estimated(66))
                     let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize,
                                                                  subitems: [item])
-//                    group.contentInsets = NSDirectionalEdgeInsets(top: 50, leading: 0,
-//                                                                  bottom: 0, trailing: 6)
+                    //                    group.contentInsets = NSDirectionalEdgeInsets(top: 50, leading: 0,
+                    //                                                                  bottom: 0, trailing: 6)
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16,
                                                                     bottom: 20, trailing: 16)
 
-                    section.boundarySupplementaryItems = [headerItem]
+                    section.boundarySupplementaryItems = [dailyWeatherHeaderItem]
 
                     return section
             }
@@ -300,12 +359,16 @@ public final class WeathersViewController: UICollectionViewController {
         return layout
     }
 
-    func configureDataSource() {
+    private func configureDataSource() {
         dataSource = .init(collectionView: collectionView, cellProvider: { [weak self]
             (collectionView, indexPath, item) -> UICollectionViewCell? in
             guard let self = self else { return nil }
             let section = self.sections[indexPath.section]
             switch section {
+                case .loading:
+                    return collectionView.dequeueReusableCell(withReuseIdentifier: LoadingCell.identifier,
+                                                                      for: indexPath)
+
                 case .currentWeatherSection:
                     guard
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CurrentWeatherViewCell.identifier,
@@ -321,17 +384,17 @@ public final class WeathersViewController: UICollectionViewController {
                     return cell
                 case .hourlyWeatherSection:
 
-//                    print(indexPath)
+                    //                    print(indexPath)
                     guard
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HourlyWeatherViewCell.identifier,
                                                                       for: indexPath)
                             as? HourlyWeatherViewCell,
-                        case .hourlyWeatherItem(let hourlytWeather) = self.hourlyWeatherItems[indexPath.item]
+                        case .hourlyWeatherItem(let hourlytWeathers) = self.hourlyWeatherItems?[indexPath.item]
                     else {
                         return nil
                     }
 
-                    cell.setup(with: hourlytWeather)
+                    cell.setup(with: hourlytWeathers)
 
                     return cell
                 case .dailyWeatherSection:
@@ -339,12 +402,12 @@ public final class WeathersViewController: UICollectionViewController {
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DailyWeatherViewCell.identifier,
                                                                       for: indexPath)
                             as? DailyWeatherViewCell,
-                        case .dailyWeatherItem(let dailyWeather) = self.dailyWeatherItems[indexPath.item]
+                        case .dailyWeatherSection(let dailyWeathers) = self.dailyWeatherSection
                     else {
                         return nil
                     }
 
-                    cell.setup(with: dailyWeather)
+                    cell.setup(with: dailyWeathers[indexPath.item])
 
                     return cell
 
@@ -352,18 +415,9 @@ public final class WeathersViewController: UICollectionViewController {
         })
 
         dataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath -> UICollectionReusableView? in
+            guard let self = self else { return nil }
             switch kind {
                 case SupplementaryViewKind.hourlyWeatherHeader:
-//                    let section = self.sections[indexPath.section]
-//                    let sectionName: String
-//                    switch section {
-//                        case .currentWeatherSection:
-//                            return nil
-//                        case .hourlyWeatherSection(let name):
-//                            sectionName = name
-//                        case .dailyWeatherSection:
-                    //                            sectionName = "Top Categories"
-                    //                    }
                     guard
                         let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: SupplementaryViewKind.hourlyWeatherHeader,
                                                                                          withReuseIdentifier: WeatherSectionHeaderView.identifier,
@@ -373,13 +427,21 @@ public final class WeathersViewController: UICollectionViewController {
                         return nil
                     }
 
-//                    headerView.setup(with: self.viewModel.currentWeather!)
+                    headerView.setup(buttonTitle: "Подробнее на 24 часа")
+                    self.presentHourlyWeatherSubscription = headerView
+                        .buttonTappedPublisher
+                        .eraseType()
+                        .sink {[weak self] in
+                            self?.presentHourlyWeather()
+                        }
+
+                    //                    self.viewModel.subscribeToggleForecastHorizon(to: publisher)
 
                     return headerView
 
-//                case SupplementaryViewKind.topLine, SupplementaryViewKind.bottomLine:
-//                    let lineView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: LineView.reuseIdentifier, for: indexPath) as! LineView
-//                    return lineView
+                    //                case SupplementaryViewKind.topLine, SupplementaryViewKind.bottomLine:
+                    //                    let lineView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: LineView.reuseIdentifier, for: indexPath) as! LineView
+                    //                    return lineView
                 case SupplementaryViewKind.dailyWeatherHeader:
                     guard
                         let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: SupplementaryViewKind.dailyWeatherHeader,
@@ -390,7 +452,12 @@ public final class WeathersViewController: UICollectionViewController {
                         return nil
                     }
 
-                    //                    headerView.setup(with: self.viewModel.currentWeather!)
+                    let publisher = headerView.buttonTappedPublisher.eraseType()
+                    self.viewModel.subscribeToggleForecastHorizon(to: publisher)
+
+                    let buttonTitle = "\(self.viewModel.toggleForecastHorizonTitle) дней"
+
+                    headerView.setup(labelTitle: "Ежедневный прогноз", buttonTitle: buttonTitle)
 
                     return headerView
 
@@ -400,25 +467,6 @@ public final class WeathersViewController: UICollectionViewController {
         }
 
 
-//        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-//        snapshot.appendSections([.promoted])
-//
-//        guard let current = self.viewModel.currentWeather else { return }
-//        let currentWeather = Item.currentWeatherItem(current)
-//        snapshot.appendItems([currentWeather], toSection: .promoted)
-//
-//        let popularSection = Section.standard("Popular this week")
-//        let essentialSection = Section.standard("Essential picks")
-//        let categoriesSection = Section.categories
-//
-//        let weathers = self.viewModel.hourlyWeather.map { Item.hourlyWeatherItem($0)}
-//        snapshot.appendSections([popularSection, categoriesSection])
-//        snapshot.appendItems(weathers, toSection: popularSection)
-////        snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
-//        snapshot.appendItems(weathers, toSection: categoriesSection)
-//
-//        sections = snapshot.sectionIdentifiers
-//        dataSource.apply(snapshot)
 
     }
 
@@ -434,121 +482,51 @@ public final class WeathersViewController: UICollectionViewController {
         }
 
         func bindViewModelToWeathers() {
+
+
+
             viewModel
                 .$currentWeather
                 .removeDuplicates()
-//                .zip(viewModel.$hourlyWeather)//, viewModel.$dailyWeather)
                 .compactMap { $0 }
                 .map { Item.currentWeatherItem($0) }
-//                .receive(on: DispatchQueue.main)
-//                .sink { currentWeather in
-//
-//
-//                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-////                    if let currentWeather = currentWeather {
-//                        snapshot.appendSections([.currentWeatherSection])
-//                        snapshot.appendItems([.currentWeatherItem(currentWeather)], toSection: .currentWeatherSection)
-////                    }
-//
-//
-//                    «let popularSection = Section.standard("Popular this week")
-//                    let essentialSection = Section.standard("Essential picks")
-//
-//                    snapshot.appendSections([.hourWeatherSection])
-//                    snapshot.appendItems(Item.popularApps, toSection: .hourWeatherSection)
-//                    snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
-//
-//
-//                    self.sections = snapshot.sectionIdentifiers
-//
-//                    self.dataSource.apply(snapshot)
-//
-//
-//                }
-//                .store(in: &subscriptions)
                 .assign(to: &$currentWeatherItem)
 
             viewModel
                 .$hourlyWeather
                 .removeDuplicates()
                 .map { weathers in
-                    weathers.map {
-                        Item.hourlyWeatherItem($0)
-                    }
+                    weathers.map { Item.hourlyWeatherItem($0) }
                 }
                 .assign(to: &$hourlyWeatherItems)
 
             viewModel
                 .$dailyWeather
                 .removeDuplicates()
-                .map { weathers in
-                    weathers.map {
-                        Item.dailyWeatherItem($0)
-                    }
-                }
-                .assign(to: &$dailyWeatherItems)
+                .map { Section.dailyWeatherSection($0) }
+                .assign(to: &$dailyWeatherSection)
+
         }
-//
+
         func bindToCollectionView() {
             Publishers.MergeMany(
-//                $currentWeatherItem.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
-//                $hourlyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
-//                $dailyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher()
+                //                $currentWeatherItem.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
+                //                $hourlyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher(),
+                //                $dailyWeatherItems.removeDuplicates().map { _ in }.eraseToAnyPublisher()
                 $currentWeatherItem.eraseTypeAndDuplicates(),
                 $hourlyWeatherItems.eraseTypeAndDuplicates(),
-                $dailyWeatherItems.eraseTypeAndDuplicates()
+                //                $dailyWeatherItems.eraseTypeAndDuplicates(),
 
+//                $currentWeatherSection.eraseTypeAndDuplicates(),
+//                $hourlyWeatherSection.eraseTypeAndDuplicates(),
+                $dailyWeatherSection.eraseTypeAndDuplicates()
             )
-            .debounce(for: .seconds(0.1), scheduler: RunLoop.current)
+            .debounce(for: .seconds(0.3), scheduler: RunLoop.current)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
-                guard let self = self else { return }
-                //                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-//
-////                    if case .currentWeatherItem(let currentWeather) = self.currentWeatherItem {
-////                    if let currentWeatherItem = self.currentWeatherItem {
-////                        snapshot.appendSections([.currentWeatherSection])
-////                        snapshot.appendItems([currentWeatherItem], toSection: .currentWeatherSection)
-////                    }
-//
-////                    if case .hourlyWeatherItem(let hourlyWeathers) = self.hourlyWeatherItem {
-////                        snapshot.appendSections([.hourlyWeatherSection])
-////                    snapshot.appendItems(self.hourlyWeatherItems, toSection: .hourlyWeatherSection)
-////                    }
-//
-//
-//                    //                    snapshot.appendSections([.hourWeatherSection])
-//                    //                    snapshot.appendItems(Item.popularApps, toSection: .hourWeatherSection)
-//                    //                    snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
-//
-//                    self.sections = snapshot.sectionIdentifiers
-//
-//                    self.dataSource.apply(snapshot)
-
-                    var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-
-
-                    if let currentWeatherItem = self.currentWeatherItem {
-                        snapshot.appendSections([.currentWeatherSection])
-                        snapshot.appendItems([currentWeatherItem], toSection: .currentWeatherSection)
-                    }
-
-
-//                    let popularSection = Section.hourlyWeatherSection("Popular this week")
-//                    let essentialSection = Section.hourlyWeatherSection("Essential picks")
-//                    let categoriesSection = Section.dailyWeatherSection
-
-
-//                    let weathers = self.viewModel.hourlyWeather.map { Item.hourlyWeatherItem($0)}
-//                    let weathers2 = Array(weathers.prefix(10))
-                    snapshot.appendSections([.hourlyWeatherSection, .dailyWeatherSection])
-                    snapshot.appendItems(self.hourlyWeatherItems, toSection: .hourlyWeatherSection)
-                    snapshot.appendItems(self.dailyWeatherItems, toSection: .dailyWeatherSection)
-
-                    self.sections = snapshot.sectionIdentifiers
-                    self.dataSource.apply(snapshot)
-                }
-                .store(in: &subscriptions)
+                self?.applySnapshot()
+            }
+            .store(in: &subscriptions)
         }
         
         bindViewModelToErrors()
@@ -558,41 +536,59 @@ public final class WeathersViewController: UICollectionViewController {
 
     }
 
-//    private func bindSettings() {
-//        let settings = Settings.shared
-//
-//        Publishers.MergeMany(
-//            settings.$temperature.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
-//            settings.$speed.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
-//            settings.$timeFormat.removeDuplicates().map({ _ in }).eraseToAnyPublisher(),
-//            settings.$notificationsState.removeDuplicates().map({ _ in }).eraseToAnyPublisher()
-//        )
-//        .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
-//        .receive(on: DispatchQueue.main)
-//        .sink { [weak self] _ in
-//            print("collectionView.reloadData")
-//
-//
-//
-//            self?.collectionView.reloadData()
-//
+    private func applySnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+
+        if currentWeatherItem == nil,
+           hourlyWeatherItems == nil,
+           dailyWeatherSection == nil {
+
+            snapshot.appendSections([.loading])
+            snapshot.appendItems([Item.empty(UUID())], toSection: .loading)
+        }
+
+        if let currentWeatherItem = currentWeatherItem,
+           case .currentWeatherItem(let weather) = currentWeatherItem {
+            snapshot.appendSections([.currentWeatherSection])
+
+            let item = Item.currentWeatherItem(weather)
+            snapshot.appendItems([item], toSection: .currentWeatherSection)
+        }
+
+        if let hourlyWeatherItems = hourlyWeatherItems {
+            snapshot.appendSections([.hourlyWeatherSection])
+
+            snapshot.appendItems(hourlyWeatherItems, toSection: .hourlyWeatherSection)
+        }
+
+        if let dailyWeatherSection = dailyWeatherSection,
+           case .dailyWeatherSection(let weathers) = dailyWeatherSection {
+            snapshot.appendSections([dailyWeatherSection])
+
+            let items = weathers.map { Item.dailyWeatherItem($0) }
+            snapshot.appendItems(items, toSection: dailyWeatherSection)
+        }
+
+        sections = snapshot.sectionIdentifiers
+        dataSource.apply(snapshot)
+    }
+
+    private func presentHourlyWeather() {
+//        guard let hourlyWeatherItems = hourlyWeatherItems else { return }
+//        let hourlyWeathers = hourlyWeatherItems.compactMap { item -> WeatherViewModel? in
+//            if case let .hourlyWeatherItem(weather) = item {
+//                return weather
+//            } else {
+//                return nil
+//            }
 //        }
-//        .store(in: &subscriptions)
-//
-//
-//        //            .merge(with: settings.$speed)
-//        //            .sink { [weak self] in
-//        //                                self?.collectionView.reloadData()
-//        //                            }
-//        //                            .store(in: &subscriptions)
-//
-//        //            .eraseToAnyPublisher()
-//        //            .merge(settings.$speed.eraseToAnyPublisher(), settings.$timeFormat.eraseToAnyPublisher(), settings.$notificationsState.eraseToAnyPublisher())
-//        //            .sink { [weak self] in
-//        //                self?.collectionView.reloadData()
-//        //            }
-//        //            .store(in: &subscriptions)
-//    }
+        let hourlyWeatherPublisher = viewModel.$hourlyWeather.eraseToAnyPublisher()
+        let hourlyViewController = viewControllerFactory.makeHourlyWeatherViewController(for: viewModel.location.cityName,
+//                                                                                         weathers: hourlyWeathers)
+                                                                                         weathers: hourlyWeatherPublisher)
+        
+        navigationController?.pushViewController(hourlyViewController, animated: true)
+    }
 
 
 
@@ -619,6 +615,11 @@ public final class WeathersViewController: UICollectionViewController {
     //    }
 
     // MARK: UICollectionViewDelegate
+
+    public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard indexPath.section == 1 else { return }
+        presentHourlyWeather()
+    }
 
     /*
      // Uncomment this method to specify if the specified item should be highlighted during tracking

@@ -72,7 +72,7 @@ extension RequestProtocol {
         }
 
 
-        print(urlRequest.url)
+//        print(urlRequest.url)
         return urlRequest
     }
 }

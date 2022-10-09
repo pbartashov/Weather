@@ -36,8 +36,8 @@ final class ImagedLabel: UIStackView {
 
     init(imageView: UIImageView,
          label: UILabel,
-         spacing: CGFloat)
-    {
+         spacing: CGFloat
+    ) {
         self.imageView = imageView
         self.label = label
 

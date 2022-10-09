@@ -17,6 +17,7 @@ extension WeatherEntity: DomainModel {
                 humidity: humidity,
                 cloudcover: cloudcover,
                 windspeed: windspeed,
+                winddir: winddir,
                 precipcover: precipcover,
                 sunriseEpoch: sunriseEpoch ?? Date(),
                 sunsetEpoch: sunsetEpoch ?? Date(),
@@ -24,6 +25,7 @@ extension WeatherEntity: DomainModel {
                 temp: temp,
                 tempmax: tempmax,
                 tempmin: tempmin,
+                feelslike: feelslike,
                 conditions: conditions ?? "",
                 icon: icon ?? "",
                 hourlyWeathers: nil)
@@ -40,20 +42,22 @@ extension WeatherEntity: DomainModel {
 //        self.latitude = Int16(latitude)
 //        self.longitude = Int16(longitude)
 //        self.weatherType = Int16(weatherType.rawValue)
-        latitude = Double(model.latitude)
-        longitude = Double(model.longitude)
+        latitude = model.latitude
+        longitude = model.longitude
         weatherTypeRaw = Int16(model.weatherType.rawValue)
 
-        humidity = Double(model.humidity)
-        cloudcover = Double(model.cloudcover)
-        windspeed = Double(model.windspeed)
-        precipcover = Double(model.precipcover)
+        humidity = model.humidity
+        cloudcover = model.cloudcover
+        windspeed = model.windspeed
+        winddir = model.winddir
+        precipcover = model.precipcover
         sunriseEpoch = model.sunriseEpoch
         sunsetEpoch = model.sunsetEpoch
         datetimeEpoch  = model.datetimeEpoch
         temp = model.temp
         tempmax = model.tempmax
         tempmin = model.tempmin
+        feelslike = model.feelslike
         conditions = model.conditions
         icon = model.icon
     }

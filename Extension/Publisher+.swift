@@ -10,7 +10,11 @@ import Combine
 extension Publisher where Output: Equatable {
     func eraseTypeAndDuplicates() -> AnyPublisher<Void, Self.Failure> {
         self.removeDuplicates()
-        .map { _ in }
-        .eraseToAnyPublisher()
+            .eraseType()
+    }
+
+    func eraseType() -> AnyPublisher<Void, Self.Failure> {
+        self.map { _ in }
+            .eraseToAnyPublisher()
     }
 }

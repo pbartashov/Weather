@@ -11,6 +11,7 @@ public struct WeatherViewModel {
 
     private let weather: Weather
     private let formatter: UnitsFormatter
+    private let uuid = UUID()
 
 
 //    public var weatherType: WeatherType {
@@ -33,8 +34,16 @@ public struct WeatherViewModel {
         formatter.format(cloudcover: weather.cloudcover)
     }
 
+    public var cloudcoverWithPercentSign: String {
+        formatter.format(cloudcoverWithPercentSign: weather.cloudcover)
+    }
+
     public var windspeed: String {
         formatter.format(speed: weather.windspeed)
+    }
+
+    public var windDirection: String {
+        formatter.format(windDirection: weather.winddir)
     }
 
     public var precipcover: String {
@@ -57,10 +66,18 @@ public struct WeatherViewModel {
         formatter.format(dayMonth: weather.datetimeEpoch)
     }
 
+    public var weekDayMonth: String {
+        formatter.format(weekDayMonth: weather.datetimeEpoch)
+    }
+
     public var time: String {
         formatter.format(time: weather.datetimeEpoch)
     }
 
+    public var tempValue: Double {
+        weather.temp
+    }
+    
     public var temp: String {
         formatter.format(temperature: weather.temp)
     }
@@ -71,6 +88,10 @@ public struct WeatherViewModel {
 
     public var tempmin: String {
         formatter.format(temperature: weather.tempmin)
+    }
+
+    public var feelslike: String {
+        formatter.format(feelslike: weather.feelslike)
     }
     
     public var conditions: String {

@@ -10,7 +10,7 @@ import Foundation
 
 public final class WeathersViewModel {
 
-    enum ForecastTimeHorizon {
+    public enum ForecastTimeHorizon {
         case small
         case large
     }
@@ -33,12 +33,27 @@ public final class WeathersViewModel {
 //        return datetimeFormatter
 //    }()
 
-    private var forecastTimeHorizon: ForecastTimeHorizon = .large
     public private(set) var location: WeatherLocation
 
-    @Published public var currentWeather: WeatherViewModel?
-    @Published public var hourlyWeather: [WeatherViewModel] = []
-    @Published public var dailyWeather: [WeatherViewModel] = []
+    @Published public private(set) var forecastHorizon: ForecastTimeHorizon = .small {
+        didSet {
+            reloadDailyWeather()
+        }
+    }
+
+    public var toggleForecastHorizonTitle: String {
+        switch forecastHorizon {
+            case .small:
+                return "\(forecastHorizon.dayForLarge)"
+
+            case .large:
+                return "\(forecastHorizon.dayForSmall)"
+        }
+    }
+
+    @Published public private(set) var currentWeather: WeatherViewModel?
+    @Published public private(set) var hourlyWeather: [WeatherViewModel] = []
+    @Published public private(set) var dailyWeather: [WeatherViewModel] = []
 
     public var errorMessages: AnyPublisher<Error, Never> {
         errorMessagesSubject.eraseToAnyPublisher()
@@ -47,6 +62,7 @@ public final class WeathersViewModel {
     private let errorMessagesSubject = PassthroughSubject<Error, Never>()
 
     private var subscriptions = Set<AnyCancellable>()
+    private var toggleForecastTimeHorizonSubscription: AnyCancellable?
 
     private let weatherRepository: WeatherRepositoryProtocol
 
@@ -151,19 +167,23 @@ public final class WeathersViewModel {
             .compactMap { $0[.hourly] }
             .combineLatest(formatterPublisher)
             .map { (weathers, formatter) in
-                weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+                Array(weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+                    .prefix(24)
+                )
             }
             .assign(to: &$hourlyWeather)
 
         weatherRepository.weathersPublisher
             .compactMap { $0[.daily] }
-            .combineLatest(formatterPublisher)
-            .map { (weathers, formatter) in
-                weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+            .combineLatest(formatterPublisher, $forecastHorizon)
+            .map { (weathers, formatter, horizon) in
+                Array(weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+                    .prefix(horizon.days)
+                )
             }
             .assign(to: &$dailyWeather)
 
-        weatherRepository.weatherContainerPublisher
+        weatherRepository.weatherPackPublisher
             .map(\.timezone)
 //            .assign(to: \.timeZone, on: location)
             .sink { [weak self] in
@@ -201,7 +221,7 @@ public final class WeathersViewModel {
 //                case.large:
 //            }
 
-            try await weatherRepository.startFetchingWeather(for: location, dateInterval: forecastTimeHorizon.dateInterval)
+            try await weatherRepository.startFetchingWeather(for: location, dateInterval: forecastHorizon.dateInterval)
 //            configureDateFormatters(with: Settings.shared.timeFormat)
 //            print(currentWeather)
 //            print(currentWeather?.sunsetEpoch)
@@ -214,7 +234,32 @@ public final class WeathersViewModel {
     }
     //     public let errorPresentation = PassthroughSubject<ErrorPresentation?, Never>()
 
+    public func subscribeToggleForecastHorizon(to publisher: AnyPublisher<Void, Never>) {
+        toggleForecastTimeHorizonSubscription = publisher
+            .sink {[weak self] in
+                self?.toggleForecastHorizon()
+            }
+    }
 
+    private func toggleForecastHorizon() {
+        switch forecastHorizon {
+            case .small:
+                forecastHorizon = .large
+
+            case .large:
+                forecastHorizon = .small
+        }
+    }
+
+    private func reloadDailyWeather() {
+        switch forecastHorizon {
+            case .small:
+                dailyWeather = Array(dailyWeather.prefix(forecastHorizon.days))
+            case .large:
+                ()
+
+        }
+    }
 
 //    private func configureTemperatureFormatters(with format: Settings.Temperature) {
 //
@@ -328,52 +373,35 @@ public final class WeathersViewModel {
 //}
 
 extension WeathersViewModel.ForecastTimeHorizon {
+    var dayForSmall: Int { 7 }
+    var dayForLarge: Int { 14 }
+
     var dateInterval: DateInterval {
         let start: Date = .now + .days(1)
-        let days: Int
-
-        switch self {
-            case .small:
-                days = 6
-            case .large:
-                days = 14
-
+//        let days: Int
+//
+//        switch self {
+//            case .small:
+//                days = dayForSmall
+//            case .large:
+//                days = dayForLarge
+//
                 #warning("25")
-        }
+//        }
 
-        let end = start + .days(days)
+        let end = start + .days(days - 1)
 
         return DateInterval(start: start, end: end)
+    }
 
-//        let start: Date = .now + .days(1)
-//        let dateComponent: DateComponents
-//
-//        switch self {
-//            case .small:
-//                dateComponent = DateComponents(day: 7)
-//
-//            case .large:
-//                dateComponent = DateComponents(day: 15)
-//        }
-//
-//        let end = Calendar.current.date(byAdding: dateComponent, to: start) ?? Date()
-//
-//        return DateInterval(start: start, end: end)
+    var days: Int {
+        switch self {
+            case .small:
+                return dayForSmall
 
-//        let start: Date = .now
-//        let timeInterval: TimeInterval
-//
-//        switch self {
-//            case .small:
-//                timeInterval = 60 * 60 * 24 * 7
-//
-//            case .large:
-//                timeInterval = 60 * 60 * 24 * 15
-//        }
-//
-//        let end = start.addingTimeInterval(TimeInterval)
-//
-//        return DateInterval(start: start, end: end)
+            case .large:
+                return dayForLarge
+        }
     }
 }
 

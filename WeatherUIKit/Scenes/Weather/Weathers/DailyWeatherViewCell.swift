@@ -26,7 +26,7 @@ final class DailyWeatherViewCell: UICollectionViewCell {
     private let precipitationView: ImagedLabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12)
-        label.textColor = .brandTextPurpleColor
+        label.textColor = .brandPurpleColor
         label.textAlignment = .center
 
         let image = UIImage(named: "Rain")
@@ -164,41 +164,5 @@ final class DailyWeatherViewCell: UICollectionViewCell {
         descriptionLabel.text = weather.conditions
         temperatureLabel.text = "\(weather.tempmin)-\(weather.tempmax)"
 
-    }
-}
-
-
-fileprivate extension WeatherIcon {
-    static let defaultIcon = UIImage()
-
-    var icon: UIImage {
-        switch self {
-            case .snow, .rain, .showersDay, .showersNight,
-                    .snowShowersDay, .snowShowersNight:
-                return getIcon(named: "Rain")
-
-            case .fog:
-                return getIcon(named: "Fog")
-
-            case .cloudy, .partlyCloudyDay, .partlyCloudyNight:
-                return getIcon(named: "Cloudly")
-
-            case .clearDay, .wind:
-                return getIcon(named: "Sunny")
-
-            case .clearNight:
-                return getIcon(named: "Moon")
-
-            case .thunderRain, .thunderShowersDay,
-                    .thunderShowersNight:
-                return getIcon(named: "Thunder")
-
-            case .none:
-                return WeatherIcon.defaultIcon
-        }
-    }
-
-    func getIcon(named: String) -> UIImage {
-        UIImage(named: named) ?? WeatherIcon.defaultIcon
     }
 }

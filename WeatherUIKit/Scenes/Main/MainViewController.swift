@@ -171,7 +171,15 @@ public final class MainViewController: UIViewController {
         search.tintColor = .brandTextColor
         navigationItem.rightBarButtonItem = search
 
+        title = viewModel.locations[currentIndex].cityName
 
+        navigationItem.backBarButtonItem = UIBarButtonItem(
+            title: nil, style: .plain, target: nil, action: nil)
+
+        let backImage = UIImage(named: "LeftArrow")
+        self.navigationController?.navigationBar.backIndicatorImage = backImage
+        self.navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
+//        self.navigationController?.navigationBar.backItem?.title = "Custom"
     }
 
     @objc private func menuTapped() {
@@ -194,6 +202,10 @@ public final class MainViewController: UIViewController {
             let pageIcon = index == currentIndex ? activePageIconImage : otherPageIconImage
             pageControl.setIndicatorImage(pageIcon, forPage: index)
         }
+
+
+        title = viewModel.locations[currentIndex].cityName
+
     }
 }
 

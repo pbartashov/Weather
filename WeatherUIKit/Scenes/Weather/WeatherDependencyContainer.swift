@@ -6,6 +6,7 @@
 //
 
 import WeatherKit
+import Combine
 
 public final class WeatherDependencyContainer {
 
@@ -57,7 +58,8 @@ public final class WeatherDependencyContainer {
 
         let viewModel = makeWeartherViewModel(for: location)
 
-        return WeathersViewController(viewModel: viewModel)
+        return WeathersViewController(viewModel: viewModel,
+                                      viewControllerFactory: self)
 //                                     weatherFormatter: viewModel)
     }
 
@@ -65,4 +67,19 @@ public final class WeatherDependencyContainer {
         let repository = WeatherRepository(context: contextProvider.backgroundContext)
         return WeathersViewModel(location: location, weatherRepository: repository)
     }
+
+    func makeHourlyWeatherViewController(for city: String,
+                                         weathers: AnyPublisher<[WeatherViewModel], Never>
+    ) -> HourlyWeatherViewController {
+        let viewModel = makeHourlyWeartherViewModel(for: city, weathers: weathers)
+        return HourlyWeatherViewController(viewModel: viewModel)
+    }
+
+    func makeHourlyWeartherViewModel(for city: String,
+                                     weathers: AnyPublisher<[WeatherViewModel], Never>
+    ) -> HourlyWeatherViewModel {
+        HourlyWeatherViewModel(cityName: city, weathers: weathers)
+    }
 }
+
+extension WeatherDependencyContainer: HourlyWeatherViewControllerFactory { }

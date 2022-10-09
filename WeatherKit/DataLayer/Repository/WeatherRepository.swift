@@ -34,7 +34,7 @@ public protocol WeatherRepositoryProtocol {
 //    var currentWeatherPublisher: AnyPublisher<Weather, Never> { get }
 
     var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> { get }
-    var weatherContainerPublisher: AnyPublisher<WeatherContainer, Never> { get }
+    var weatherPackPublisher: AnyPublisher<WeatherPack, Never> { get }
     //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> { get }
     //    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
 
@@ -71,8 +71,8 @@ public final class WeatherRepository {
             .eraseToAnyPublisher()
     }
 
-    private let weatherContainerSubject = PassthroughSubject<WeatherContainer, Never>()
-    public var weatherContainerPublisher: AnyPublisher<WeatherContainer, Never> {
+    private let weatherContainerSubject = PassthroughSubject<WeatherPack, Never>()
+    public var weatherPackPublisher: AnyPublisher<WeatherPack, Never> {
         weatherContainerSubject.eraseToAnyPublisher()
     }
 
@@ -278,15 +278,15 @@ extension WeatherRepository: WeatherRepositoryProtocol {
                                      //        latitude: Double,
                                      //                                 longitude: Double
     ) async throws {
-        let weatherContainer: WeatherContainer = try await requestManager.perform(
+        let weatherContainer: WeatherPack = try await requestManager.perform(
             WeatherRequest.getCurrentDayWeatherFor(location: location)
         )
         weatherContainerSubject.send(weatherContainer)
 
         guard let todayWeather = weatherContainer.days.first else { return }
-        print(todayWeather)
+//        print(todayWeather)
         if let currentWeather = weatherContainer.currentWeather  {
-            print(currentWeather)
+//            print(currentWeather)
             try await store([currentWeather])
         }
 //            try await store([currentWeather.filledWith(weatherType: .current,
@@ -295,7 +295,7 @@ extension WeatherRepository: WeatherRepositoryProtocol {
 //        }
 
         guard let hourlyWeather = todayWeather.hourlyWeathers else { return }
-        print(hourlyWeather)
+//        print(hourlyWeather)
 //        hourlyWeather = hourlyWeather.map { weather in
 //            weather.filledWith(weatherType: .hourly,
 //                               longitude: location.longitude,
@@ -318,7 +318,7 @@ extension WeatherRepository: WeatherRepositoryProtocol {
                                              dateInterval: DateInterval
     ) async throws {
 
-        let weatherContainer: WeatherContainer = try await requestManager.perform(
+        let weatherContainer: WeatherPack = try await requestManager.perform(
             WeatherRequest.getForecastWeatherFor(location: location, dateInterval: dateInterval)
         )
 

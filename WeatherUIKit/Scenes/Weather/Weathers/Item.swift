@@ -8,6 +8,7 @@
 import WeatherKit
 
 enum Item: Hashable {
+    case empty(UUID)
     case currentWeatherItem(WeatherViewModel)
     case hourlyWeatherItem(WeatherViewModel)
     case dailyWeatherItem(WeatherViewModel)

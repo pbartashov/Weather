@@ -44,11 +44,15 @@ public final class UnitsFormatter {
 
     private let dayMonthFormatter: DateFormatter
 
-    private var temperatureFormatter: MeasurementFormatter
+    private let weekDayMonthFormatter: DateFormatter
 
-    private var speedFormatter: MeasurementFormatter
+    private let temperatureFormatter: MeasurementFormatter
 
-    private var speedUnits: UnitSpeed
+    private let speedFormatter: MeasurementFormatter
+
+    private let speedUnits: UnitSpeed
+
+    private let windDirectionFormatter: WindDirectionFormatter
 
     // MARK: - Views
 
@@ -63,16 +67,20 @@ public final class UnitsFormatter {
     public init(timeFormatter: DateFormatter,
                 datetimeFormatter: DateFormatter,
                 dayMonthFormatter: DateFormatter,
+                weekDayMonthFormatter: DateFormatter,
                 temperatureFormatter: MeasurementFormatter,
                 speedFormatter: MeasurementFormatter,
-                speedUnits: UnitSpeed
+                speedUnits: UnitSpeed,
+                windDirectionFormatter: WindDirectionFormatter
     ) {
         self.timeFormatter = timeFormatter
         self.datetimeFormatter = datetimeFormatter
         self.dayMonthFormatter = dayMonthFormatter
+        self.weekDayMonthFormatter = weekDayMonthFormatter
         self.temperatureFormatter = temperatureFormatter
         self.speedFormatter = speedFormatter
         self.speedUnits = speedUnits
+        self.windDirectionFormatter = windDirectionFormatter
     }
 
     // MARK: - Metods
@@ -216,14 +224,21 @@ public final class UnitsFormatter {
 }
 
 extension UnitsFormatter: WeartherFormatterProtocol {
+
+
     public func format(temperature: Double) -> String {
         //  "\(temperature)\(Settings.shared.temperatureSymbol)"
 
-        print("format(temperature: Double)")
+//        print("format(temperature: Double)")
+//
+//        print(Date(timeIntervalSince1970: 0))
 
-        print(Date(timeIntervalSince1970: 0))
+        temperatureFormatter.string(from: Measurement(value: temperature, unit: UnitTemperature.celsius))
+    }
 
-        return temperatureFormatter.string(from: Measurement(value: temperature, unit: UnitTemperature.celsius))
+    public func format(feelslike: Double) -> String {
+        let feelslike = temperatureFormatter.string(from: Measurement(value: feelslike, unit: UnitTemperature.celsius))
+        return "По ощущению \(feelslike)"
     }
 
     public func format(speed: Double) -> String {
@@ -243,9 +258,13 @@ extension UnitsFormatter: WeartherFormatterProtocol {
         return speedFormatter.string(from: metersPerSecond)
     }
 
+    public func format(windDirection: Double) -> String {
+        windDirectionFormatter.string(from: windDirection)
+    }
+
     public func format(time: Date) -> String {
 
-        print(time)
+//        print(time)
         return timeFormatter.string(from: time)
     }
 
@@ -257,8 +276,16 @@ extension UnitsFormatter: WeartherFormatterProtocol {
         dayMonthFormatter.string(from: dayMonth)
     }
 
+    public func format(weekDayMonth: Date) -> String {
+        weekDayMonthFormatter.string(from: weekDayMonth).lowercased()
+    }
+
     public func format(cloudcover: Double) -> String {
         "\(String(format: "%.0f", cloudcover))"
+    }
+
+    public func format(cloudcoverWithPercentSign: Double) -> String {
+        "\(format(cloudcover: cloudcoverWithPercentSign))%"
     }
 
     public func format(humidity: Double) -> String {

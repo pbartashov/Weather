@@ -4,11 +4,11 @@ import UIKit
 
 class LineView: UICollectionReusableView {
     
-    static let reuseIdentifier = "LineView"
+//    static let reuseIdentifier = "LineView"
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .lightGray
+        backgroundColor = .brandPurpleColor
     }
     
     required init?(coder: NSCoder) {

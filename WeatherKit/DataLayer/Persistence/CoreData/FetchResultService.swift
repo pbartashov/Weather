@@ -61,7 +61,13 @@ final class FetchResultService: NSObject, NSFetchedResultsControllerDelegate {
     // MARK: - Metods
 
     private func sendCurrentObjects() {
-        onObjectsChange.send(fetchedResultsController?.fetchedObjects ?? [])
+
+        #warning("REMOVE")
+//        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3)) { [weak self] in
+//            guard let self = self else { return }
+            self.onObjectsChange.send(self.fetchedResultsController?.fetchedObjects ?? [])
+//        }
+
 
 
 

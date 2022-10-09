@@ -41,7 +41,7 @@ public final class DataParser: DataParserProtocol {
 //            jsonDecoder.userInfo[key] = 0.0
 //        }
 
-        if let key = WeatherContainer.boxUserInfoKey {
+        if let key = WeatherPack.boxUserInfoKey {
             jsonDecoder.userInfo[key] = ParserBox()
         }
 

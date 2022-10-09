@@ -40,8 +40,8 @@ extension UIColor {
         getBrandColor(named: "TextGrayColor")
     }
 
-    static var brandTextPurpleColor: UIColor {
-        getBrandColor(named: "TextPurpleColor")
+    static var brandPurpleColor: UIColor {
+        getBrandColor(named: "PurpleColor")
     }
 
 
