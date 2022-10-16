@@ -34,7 +34,8 @@ public class AppDependencyContainer {
 
     public init(contextProvider: CoreDataContextProvider = CoreDataContextProvider.shared) {
         func makeMainViewModel() -> MainViewModel {
-            MainViewModel()
+            let repository = WeatherLocationRepository(context: contextProvider.backgroundContext)
+            return MainViewModel(locationsRepository: repository)
         }
 
         self.contextProvider = contextProvider
@@ -65,9 +66,24 @@ public class AppDependencyContainer {
             return self.makeSettingsViewController()
         }
 
+        let addLocationViewControllerFactory = {
+            return self.makeAddLocationViewController()
+        }
+
+        let onboardingViewControllerFactory = {
+            return self.makeOnboardingViewController()
+        }
+
+        let searchLocationViewControllerFactory = {
+            return self.makeSearchLocationViewController()
+        }
+
         return MainViewController(viewModel: sharedMainViewModel,
                                   weatherViewControllerFactory: weatherViewControllerFactory,
-                                  settingsViewControllerFactory: settingsViewControllerFactory)
+                                  settingsViewControllerFactory: settingsViewControllerFactory,
+                                  addLocationViewControllerFactory: addLocationViewControllerFactory,
+                                  onboardingViewControllerFactory: onboardingViewControllerFactory,
+                                  searchLocationViewControllerFactory: searchLocationViewControllerFactory)
     }
 
     public func makeRootViewController() -> UIViewController {
@@ -87,6 +103,25 @@ public class AppDependencyContainer {
         let dependencyContainer = SettingsDependencyContainer()
         return dependencyContainer.makeSettingsViewController()
     }
+
+    public func makeAddLocationViewController() -> AddLocationViewController {
+        AddLocationViewController(addLocationResponder: sharedMainViewModel)
+    }
+
+    public func makeOnboardingViewController() -> OnboardingViewController {
+        let viewModel = makeOnboardingViewModel()
+        return OnboardingViewController(viewModel: viewModel, onboardingResponder: sharedMainViewModel)
+    }
+
+    func makeOnboardingViewModel() -> OnboardingViewModel {
+        OnboardingViewModel()
+    }
+
+    public func makeSearchLocationViewController() -> SearchLocationViewController {
+        SearchLocationViewController(searchLocationResponder: sharedMainViewModel)
+    }
+
+    
 
 
 

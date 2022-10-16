@@ -9,7 +9,7 @@ public struct WeatherLocation {
 //public final class WeatherLocation {
     public let index: Int
     public let cityName: String
-    public var timeZone: String? = nil
+    public var timeZone: String?// = nil
 
     public let latitude: Double
     public let longitude: Double

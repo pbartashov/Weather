@@ -180,10 +180,10 @@ final class HourlyWeatherDetailedViewCell: UICollectionViewCell {
         temperatureLabel.text = weather.temp
 
         conditionsRow.image = weather.icon.icon
-        conditionsRow.centerText = "\(weather.conditions). \(weather.feelslike)"
+        conditionsRow.centerText = "\(weather.conditions). По ощущению \(weather.feelslike)"
 
         windRow.rightText = "\(weather.windspeed) \(weather.windDirection)"
-        precipitationRow.rightText = weather.precipcover
+        precipitationRow.rightText = weather.precipprob
         cloudsRow.rightText = weather.cloudcoverWithPercentSign
 
         #warning("shows wrong info")

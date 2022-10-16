@@ -7,22 +7,15 @@
 
 import UIKit
 import SnapKit
+import WeatherKit
 
 final class OnboardingView: UIView {
-
-    struct OnboardingViewModel {
-        let image: UIImage? = UIImage(named: "Logo")
-        let title: String = "Разрешить приложению  Weather использовать данные\nо местоположении вашего устройства"
-        let text: String = "Чтобы получить более точные прогнозы погоды во время движения или путешествия"
-        let secondaryText: String = "Вы можете изменить свой выбор в любое время из меню приложения"
-
-        let yesButtonText = "ИСПОЛЬЗОВАТЬ МЕСТОПОЛОЖЕНИЕ  УСТРОЙСТВА"
-        let noButtonText = "НЕТ, Я БУДУ ДОБАВЛЯТЬ ЛОКАЦИИ"
-    }
 
 
 
     // MARK: - Properties
+
+    private let onboardingResponder: OnboardingResponder
 
     // MARK: - Views
     private let scrollView: UIScrollView = {
@@ -69,7 +62,7 @@ final class OnboardingView: UIView {
         return label
     }()
 
-    private let yesButton: UIButton = {
+    private lazy var yesButton: UIButton = {
         let button = UIButton()
 
         button.setTitleColor(.white, for: .normal)
@@ -79,22 +72,31 @@ final class OnboardingView: UIView {
         button.layer.cornerRadius = 10
         button.layer.masksToBounds = true
 
+        button.addTarget(onboardingResponder,
+                         action: #selector(OnboardingResponder.locationAccessGranted),
+                         for: .touchUpInside)
+
         return button
     }()
 
-    private let noButton: UIButton = {
+    private lazy var noButton: UIButton = {
         let button = UIButton()
 
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
+
+        button.addTarget(onboardingResponder,
+                         action: #selector(OnboardingResponder.locationAccessDenied),
+                         for: .touchUpInside)
 
         return button
     }()
 
     // MARK: - LifeCicle
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(onboardingResponder: OnboardingResponder) {
+        self.onboardingResponder = onboardingResponder
+        super.init(frame: .zero)
 
         initialize()
     }
@@ -122,7 +124,7 @@ final class OnboardingView: UIView {
 
         setupLayouts()
 
-        setupView()
+//        setupView()
     }
 
     private func setupLayouts() {
@@ -130,6 +132,7 @@ final class OnboardingView: UIView {
             make.top.bottom.centerX.equalToSuperview()
             make.width.equalToSuperview()
             make.width.equalTo(scrollView.contentLayoutGuide)
+            #warning("need???")
         }
 
 
@@ -201,9 +204,9 @@ final class OnboardingView: UIView {
 
     }
 
-    func setupView() {
-        let viewModel = OnboardingViewModel()
-        logoView.image = viewModel.image
+    func setupView(with viewModel: OnboardingViewModel) {
+
+        logoView.image = UIImage(named: viewModel.imageName)
 
         titleLabel.text = viewModel.title
         textLabel.text = viewModel.text

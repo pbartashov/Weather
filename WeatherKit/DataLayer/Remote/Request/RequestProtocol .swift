@@ -8,6 +8,8 @@
 import Foundation
 
 public protocol RequestProtocol {
+    var scheme: RequestScheme { get }
+    var host: String { get }
     var path: String { get }
     var requestType: RequestType { get }
     var headers: [String: String] { get }
@@ -18,9 +20,9 @@ public protocol RequestProtocol {
 
 // MARK: - Default RequestProtocol
 extension RequestProtocol {
-    var host: String {
-        APIConstants.host
-    }
+//    var host: String {
+//        WeatherAPIConstants.host
+//    }
 
 //    var addAuthorizationToken: Bool {
 //        true
@@ -40,7 +42,7 @@ extension RequestProtocol {
 
     func createURLRequest() throws -> URLRequest {
         var components = URLComponents()
-        components.scheme = "https"
+        components.scheme = scheme.rawValue
         components.host = host
         components.path = path
 
@@ -72,7 +74,7 @@ extension RequestProtocol {
         }
 
 
-//        print(urlRequest.url)
+        print(urlRequest.url)
         return urlRequest
     }
 }

@@ -8,9 +8,9 @@
 import UIKit
 
 extension UIColor {
-    static var brandBlue: UIColor {
-        getBrandColor(named: "AccentColor")
-    }
+//    static var brandBlue: UIColor {
+//        getBrandColor(named: "AccentColor")
+//    }
 
     static var brandOrange: UIColor {
         getBrandColor(named: "OrangeColor")

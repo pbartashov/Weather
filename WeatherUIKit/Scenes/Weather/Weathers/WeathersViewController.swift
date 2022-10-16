@@ -36,7 +36,7 @@ public final class WeathersViewController: UICollectionViewController {
 
     // MARK: - Properties
 
-    let viewModel: WeathersViewModel
+    private let viewModel: WeathersViewModel
     //    var formatter: WeartherFormatterProtocol
 
     private var subscriptions = Set<AnyCancellable>()
@@ -59,7 +59,8 @@ public final class WeathersViewController: UICollectionViewController {
     @Published private var dailyWeatherSection: Section?
 
     // Factories
-    private let viewControllerFactory: HourlyWeatherViewControllerFactory
+    private let hourlyWeatherViewControllerFactory: HourlyWeatherViewControllerFactory
+    private let dailyWeatherViewControllerFactory: DailyWeatherViewControllerFactory
 
     // MARK: - Views
 
@@ -81,12 +82,14 @@ public final class WeathersViewController: UICollectionViewController {
     // MARK: - LifeCicle
 
     init(viewModel: WeathersViewModel,
-         viewControllerFactory: HourlyWeatherViewControllerFactory
+         hourlyWeatherViewControllerFactory: HourlyWeatherViewControllerFactory,
+         dailyWeatherViewControllerFactory: DailyWeatherViewControllerFactory
          //         weatherFormatter: WeartherFormatterProtocol
     ) {
 
         self.viewModel = viewModel
-        self.viewControllerFactory = viewControllerFactory
+        self.hourlyWeatherViewControllerFactory = hourlyWeatherViewControllerFactory
+        self.dailyWeatherViewControllerFactory = dailyWeatherViewControllerFactory
         //        self.formatter = weatherFormatter
 
         super.init(nibName: nil, bundle: nil)
@@ -152,10 +155,8 @@ public final class WeathersViewController: UICollectionViewController {
         bindViewModelToViews()
         //        bindSettings()
 
+        fetchWeather()
 
-        Task {
-            await viewModel.fetchWeather()
-        }
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -169,6 +170,12 @@ public final class WeathersViewController: UICollectionViewController {
 
 
     // MARK: - Metods
+
+    private func fetchWeather() {
+        Task {
+            await viewModel.fetchWeather()
+        }
+    }
 
     private func configureCollectionView() {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
@@ -206,12 +213,23 @@ public final class WeathersViewController: UICollectionViewController {
         //        collectionView.bounces = false
         //        collectionView.alwaysBounceHorizontal = false
         configureDataSource()
+        configureRefreshControl()
     }
 
 //    private func createMainSection() -> NSCollectionLayoutSection {
 //
 //    }
 
+    private func configureRefreshControl() {
+        collectionView.refreshControl = UIRefreshControl()
+        collectionView.refreshControl?.addTarget(self, action:
+                                                    #selector(handleRefreshControl),
+                                                  for: .valueChanged)
+    }
+
+    @objc func handleRefreshControl() {
+        fetchWeather()
+    }
 
     private func createLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
@@ -521,9 +539,10 @@ public final class WeathersViewController: UICollectionViewController {
 //                $hourlyWeatherSection.eraseTypeAndDuplicates(),
                 $dailyWeatherSection.eraseTypeAndDuplicates()
             )
-            .debounce(for: .seconds(0.3), scheduler: RunLoop.current)
+            .debounce(for: .seconds(0.5), scheduler: RunLoop.current)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
+                self?.collectionView.refreshControl?.endRefreshing()
                 self?.applySnapshot()
             }
             .store(in: &subscriptions)
@@ -583,11 +602,29 @@ public final class WeathersViewController: UICollectionViewController {
 //            }
 //        }
         let hourlyWeatherPublisher = viewModel.$hourlyWeather.eraseToAnyPublisher()
-        let hourlyViewController = viewControllerFactory.makeHourlyWeatherViewController(for: viewModel.location.cityName,
+        let hourlyViewController = hourlyWeatherViewControllerFactory.makeHourlyWeatherViewController(for: viewModel.location.cityName,
 //                                                                                         weathers: hourlyWeathers)
                                                                                          weathers: hourlyWeatherPublisher)
         
         navigationController?.pushViewController(hourlyViewController, animated: true)
+    }
+
+
+    private func presentDailyWeather() {
+        //        guard let hourlyWeatherItems = hourlyWeatherItems else { return }
+        //        let hourlyWeathers = hourlyWeatherItems.compactMap { item -> WeatherViewModel? in
+        //            if case let .hourlyWeatherItem(weather) = item {
+        //                return weather
+        //            } else {
+        //                return nil
+        //            }
+        //        }
+        let dailyWeatherPublisher = viewModel.$dailyWeather.eraseToAnyPublisher()
+        let dailyViewController = dailyWeatherViewControllerFactory.makeDailyWeatherViewController(for: viewModel.location,
+                                                                                                      //                                                                                         weathers: hourlyWeathers)
+                                                                                                      weathers: dailyWeatherPublisher)
+
+        navigationController?.pushViewController(dailyViewController, animated: true)
     }
 
 
@@ -617,8 +654,16 @@ public final class WeathersViewController: UICollectionViewController {
     // MARK: UICollectionViewDelegate
 
     public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard indexPath.section == 1 else { return }
-        presentHourlyWeather()
+        switch indexPath.section {
+            case 1:
+                presentHourlyWeather()
+
+            case 2:
+                presentDailyWeather()
+
+            default:
+                break
+        }
     }
 
     /*

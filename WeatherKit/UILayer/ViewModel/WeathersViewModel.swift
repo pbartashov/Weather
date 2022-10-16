@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public final class WeathersViewModel {
+public final class WeathersViewModel: ViewModel {
 
     public enum ForecastTimeHorizon {
         case small
@@ -55,13 +55,6 @@ public final class WeathersViewModel {
     @Published public private(set) var hourlyWeather: [WeatherViewModel] = []
     @Published public private(set) var dailyWeather: [WeatherViewModel] = []
 
-    public var errorMessages: AnyPublisher<Error, Never> {
-        errorMessagesSubject.eraseToAnyPublisher()
-    }
-
-    private let errorMessagesSubject = PassthroughSubject<Error, Never>()
-
-    private var subscriptions = Set<AnyCancellable>()
     private var toggleForecastTimeHorizonSubscription: AnyCancellable?
 
     private let weatherRepository: WeatherRepositoryProtocol
@@ -74,13 +67,15 @@ public final class WeathersViewModel {
     public init(
         location: WeatherLocation,
         weatherRepository: WeatherRepositoryProtocol,
-        unitsFormatterContainer: UnitsFormatterContainer = UnitsFormatterContainer()
+        unitsFormatterContainer: UnitsFormatterContainer
 
     ) {
         self.location = location
         self.weatherRepository = weatherRepository
         self.formatterContainer = unitsFormatterContainer
 
+        super.init()
+        
         if let timeZone = location.timeZone {
             self.formatterContainer.setup(timeZone: timeZone)
         }
@@ -167,8 +162,9 @@ public final class WeathersViewModel {
             .compactMap { $0[.hourly] }
             .combineLatest(formatterPublisher)
             .map { (weathers, formatter) in
-                Array(weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+                Array(weathers
                     .prefix(24)
+                    .map { WeatherViewModel(weather: $0, formatter: formatter) }
                 )
             }
             .assign(to: &$hourlyWeather)
@@ -177,21 +173,22 @@ public final class WeathersViewModel {
             .compactMap { $0[.daily] }
             .combineLatest(formatterPublisher, $forecastHorizon)
             .map { (weathers, formatter, horizon) in
-                Array(weathers.map { WeatherViewModel(weather: $0, formatter: formatter) }
+                Array(weathers
                     .prefix(horizon.days)
+                    .map { WeatherViewModel(weather: $0, formatter: formatter) }
                 )
             }
             .assign(to: &$dailyWeather)
 
-        weatherRepository.weatherPackPublisher
-            .map(\.timezone)
-//            .assign(to: \.timeZone, on: location)
-            .sink { [weak self] in
-                guard let self = self else { return }
-                self.location.timeZone = $0
-                self.formatterContainer.setup(timeZone: $0)
-            }
-            .store(in: &subscriptions)
+//        weatherRepository.weatherPackPublisher
+//            .map(\.timezone)
+////            .assign(to: \.timeZone, on: location)
+//            .sink { [weak self] in
+//                guard let self = self else { return }
+//                self.location.timeZone = $0
+//                self.formatterContainer.setup(timeZone: $0)
+//            }
+//            .store(in: &subscriptions)
     }
 
 

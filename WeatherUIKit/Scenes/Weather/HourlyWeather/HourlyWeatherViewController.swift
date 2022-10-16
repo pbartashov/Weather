@@ -24,7 +24,7 @@ public final class HourlyWeatherViewController: UICollectionViewController {
 
     // MARK: - Properties
 
-    let viewModel: HourlyWeatherViewModel
+    private let viewModel: HourlyWeatherViewModel
 
     private var subscriptions = Set<AnyCancellable>()
 
@@ -83,7 +83,7 @@ public final class HourlyWeatherViewController: UICollectionViewController {
         viewModel.$weathers
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                print("🌴")
+//                print("🌴")
 
                 //                self?.applySnapshot()
 //                DispatchQueue.main.async {
@@ -109,9 +109,9 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                                 forSupplementaryViewOfKind: SupplementaryViewKind.chartHeader,
                                 withReuseIdentifier: ChartSectionHeaderView.identifier)
 
-        collectionView.register(LineView.self,
+        collectionView.register(LineReusableView.self,
                                 forSupplementaryViewOfKind: SupplementaryViewKind.hourlyWeatherHeader,
-                                withReuseIdentifier: LineView.identifier)
+                                withReuseIdentifier: LineReusableView.identifier)
 
 //        collectionView.contentInsetAdjustmentBehavior = .never
 //        collectionView.contentInset = .init(top: 88, left: 0, bottom: 0, right: 0)
@@ -269,9 +269,9 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                 case SupplementaryViewKind.hourlyWeatherHeader:
                     guard
                         let lineView = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
-                                                                                       withReuseIdentifier: LineView.identifier,
+                                                                                       withReuseIdentifier: LineReusableView.identifier,
                                                                                        for: indexPath)
-                            as? LineView else {
+                            as? LineReusableView else {
                         return nil
                     }
 
@@ -315,13 +315,13 @@ public final class HourlyWeatherViewController: UICollectionViewController {
         let temperatures = weathers.map { $0.tempValue }
         let temperaturesTexts = weathers.map { $0.temp }
         let images = weathers.map { $0.icon.icon }
-        let precipcover = weathers.map { $0.precipcover }
+        let precipprob = weathers.map { $0.precipprob }
         let times = weathers.map { $0.time }
 
         cell.setup(chartData: temperatures,
                    chartDataLabels: temperaturesTexts,
                    infoImages: images,
-                   infoTexts: precipcover,
+                   infoTexts: precipprob,
                    labelTexts: times)
 
 //        print("🌴🌴🌴\(temperatures.count)")

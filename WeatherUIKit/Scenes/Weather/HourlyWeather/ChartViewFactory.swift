@@ -21,15 +21,15 @@ struct ChartViewFactory {
         chartView.gradientColorLocations = [0.0, 0.0, 1.0]
 
         chartView.lineWidth = 0.3
-        chartView.lineColor = .brandBlue
+        chartView.lineColor = .brandPurpleColor
         chartView.gradientBorderWidth = 0.3
-        chartView.gradientBorderColor = .brandBlue
+        chartView.gradientBorderColor = .brandPurpleColor
         chartView.chartBottomBorder = 47
         chartView.graphPointRadius = 2
 
         chartView.pointColor = .white
-        chartView.xAxisColor = .brandBlue
-        chartView.xAxisPointColor = .brandBlue
+        chartView.xAxisColor = .brandPurpleColor
+        chartView.xAxisPointColor = .brandPurpleColor
         chartView.xAxisWidth = 0.5
         chartView.xAxisInfoImagesOffset = .init(x: 3, y: 68 - 116)
         chartView.xAxisInfoOffset = .init(x: 0, y: 88 - 116)

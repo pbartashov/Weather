@@ -52,7 +52,7 @@ final class LoadingCell: UICollectionViewCell {
         contentView.layer.borderWidth = 0.5
         contentView.layer.borderColor = UIColor.brandLightPurple.cgColor
 
-        contentView.backgroundColor = .brandBlue
+        contentView.backgroundColor = .brandPurpleColor
 
 
                 [activity,

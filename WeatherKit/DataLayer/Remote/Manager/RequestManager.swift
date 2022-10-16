@@ -45,7 +45,7 @@ public final class RequestManager: RequestManagerProtocol {
         let decoded: T = try parser.parse(data: data)
 
 
-
+//        print(String(data: data, encoding: .utf8))
 
         return decoded
     }

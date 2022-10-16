@@ -16,9 +16,10 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
 
     private let timeLabel: UILabel = {
         let label = UILabel()
-
         label.font = .systemFont(ofSize: 14)
         label.textAlignment = .center
+        label.lineBreakMode = .byClipping
+        label.numberOfLines = 2
 
         return label
     }()
@@ -29,7 +30,6 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
 
     private let temperatureLabel: UILabel = {
         let label = UILabel()
-
         label.font = .systemFont(ofSize: 16)
         label.textAlignment = .center
 
@@ -85,7 +85,7 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
     private func setupLayouts() {
         stackView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(15)
-            make.centerX.equalToSuperview()
+            make.leading.trailing.equalToSuperview()
             make.bottom.equalToSuperview().offset(-8)
         }
 
@@ -119,7 +119,7 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
         temperatureLabel.text = weather.temp
 
         if weather.isHighLighted {
-            contentView.backgroundColor = .brandBlue
+            contentView.backgroundColor = .brandPurpleColor
             timeLabel.textColor = .white
             temperatureLabel.textColor = .white
         } else {

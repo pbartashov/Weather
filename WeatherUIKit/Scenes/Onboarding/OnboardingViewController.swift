@@ -6,22 +6,40 @@
 //
 
 import UIKit
+import WeatherKit
 
-final class OnboardingViewController: UIViewController {
+public final class OnboardingViewController: UIViewController {
 
     // MARK: - Properties
+    private let viewModel: OnboardingViewModel
+    private let onboardingView: OnboardingView
+//    private let onboardingResponder: OnboardingResponder
 
     // MARK: - Views
 
     // MARK: - LifeCicle
-
-    override func loadView() {
-        view = OnboardingView()
+    public init(
+        viewModel: OnboardingViewModel,
+        onboardingResponder: OnboardingResponder
+    ) {
+        self.viewModel = viewModel
+        self.onboardingView = OnboardingView(onboardingResponder: onboardingResponder)
+        super.init(nibName: nil, bundle: nil)
     }
-    override func viewDidLoad() {
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+
+    public override func loadView() {
+        view = onboardingView
+    }
+
+    public override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.backgroundColor = .brandBlue
+        self.view.backgroundColor = .brandPurpleColor
         
 //        let onboardingView = OnboardingView()
 //        view.addSubview(onboardingView)
@@ -29,8 +47,12 @@ final class OnboardingViewController: UIViewController {
 //        onboardingView.snp.makeConstraints { make in
 //            make.edges.equalToSuperview()
 //        }
-        setupViewModel()
+//        setupViewModel()
         // Do any additional setup after loading the view.
+
+
+        onboardingView.setupView(with: viewModel)
+
     }
 
 

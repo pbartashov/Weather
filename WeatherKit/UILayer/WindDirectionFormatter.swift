@@ -15,3 +15,5 @@ public struct WindDirectionFormatter {
         return directions[i % 16]
     }
 }
+
+extension WindDirectionFormatter: Hashable { }

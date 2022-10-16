@@ -5,8 +5,8 @@
 //  Created by Павел Барташов on 01.09.2022.
 //
 
-import UIKit
-import CoreData
+//import UIKit
+//import CoreData
 
 //https://www.userdesk.io/blog/repository-pattern-using-core-data-and-swift/
 extension WeatherEntity: DomainModel {
@@ -18,14 +18,18 @@ extension WeatherEntity: DomainModel {
                 cloudcover: cloudcover,
                 windspeed: windspeed,
                 winddir: winddir,
-                precipcover: precipcover,
-                sunriseEpoch: sunriseEpoch ?? Date(),
-                sunsetEpoch: sunsetEpoch ?? Date(),
-                datetimeEpoch: datetimeEpoch ?? Date(),
+                precipprob: precipprob,
+                uvIndex: uvIndex,
                 temp: temp,
                 tempmax: tempmax,
                 tempmin: tempmin,
                 feelslike: feelslike,
+                sunriseEpoch: sunriseEpoch ?? Date(),
+                sunsetEpoch: sunsetEpoch ?? Date(),
+                datetimeEpoch: datetimeEpoch ?? Date(),
+                moonphase: moonphase,
+                moonriseEpoch: moonriseEpoch,
+                moonsetEpoch: moonsetEpoch,
                 conditions: conditions ?? "",
                 icon: icon ?? "",
                 hourlyWeathers: nil)
@@ -50,7 +54,7 @@ extension WeatherEntity: DomainModel {
         cloudcover = model.cloudcover
         windspeed = model.windspeed
         winddir = model.winddir
-        precipcover = model.precipcover
+        precipprob = model.precipprob
         sunriseEpoch = model.sunriseEpoch
         sunsetEpoch = model.sunsetEpoch
         datetimeEpoch  = model.datetimeEpoch
@@ -60,6 +64,10 @@ extension WeatherEntity: DomainModel {
         feelslike = model.feelslike
         conditions = model.conditions
         icon = model.icon
+        uvIndex = model.uvIndex
+        moonphase = model.moonphase
+        moonriseEpoch = model.moonriseEpoch
+        moonsetEpoch = model.moonsetEpoch
     }
 }
 

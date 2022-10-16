@@ -28,7 +28,7 @@ public final class SettingsViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.backgroundColor = .brandBlue
+        self.view.backgroundColor = .brandPurpleColor
         navigationController?.navigationBar.tintColor = .brandLightGray
 //        setupViewModel()
 

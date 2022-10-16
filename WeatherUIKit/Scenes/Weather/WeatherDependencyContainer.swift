@@ -12,7 +12,7 @@ public final class WeatherDependencyContainer {
 
     // MARK: - Properties
     let contextProvider: CoreDataContextProvider
-
+    let unitsFormatterContainer = UnitsFormatterContainer()
 
 
     //    // From parent container
@@ -59,13 +59,16 @@ public final class WeatherDependencyContainer {
         let viewModel = makeWeartherViewModel(for: location)
 
         return WeathersViewController(viewModel: viewModel,
-                                      viewControllerFactory: self)
+                                      hourlyWeatherViewControllerFactory: self,
+                                      dailyWeatherViewControllerFactory: self)
 //                                     weatherFormatter: viewModel)
     }
 
     func makeWeartherViewModel(for location: WeatherLocation) -> WeathersViewModel {
         let repository = WeatherRepository(context: contextProvider.backgroundContext)
-        return WeathersViewModel(location: location, weatherRepository: repository)
+        return WeathersViewModel(location: location,
+                                 weatherRepository: repository,
+                                 unitsFormatterContainer: unitsFormatterContainer)
     }
 
     func makeHourlyWeatherViewController(for city: String,
@@ -80,6 +83,22 @@ public final class WeatherDependencyContainer {
     ) -> HourlyWeatherViewModel {
         HourlyWeatherViewModel(cityName: city, weathers: weathers)
     }
+
+    func makeDailyWeatherViewController(for location: WeatherLocation,
+                                        weathers: AnyPublisher<[WeatherViewModel], Never>
+    ) -> DailyWeatherViewController {
+        let viewModel = makeDailyWeartherViewModel(for: location, weathers: weathers)
+        return DailyWeatherViewController(viewModel: viewModel)
+    }
+
+    func makeDailyWeartherViewModel(for location: WeatherLocation,
+                                     weathers: AnyPublisher<[WeatherViewModel], Never>
+    ) -> DailyWeatherViewModel {
+        DailyWeatherViewModel(location: location,
+                              weathers: weathers,
+                              unitsFormatterContainer: unitsFormatterContainer)
+    }
 }
 
 extension WeatherDependencyContainer: HourlyWeatherViewControllerFactory { }
+extension WeatherDependencyContainer: DailyWeatherViewControllerFactory { }

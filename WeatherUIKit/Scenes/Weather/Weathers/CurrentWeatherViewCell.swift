@@ -162,7 +162,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
     private func initialize() {
         contentView.layer.cornerRadius = 5
         contentView.layer.masksToBounds = true
-        contentView.backgroundColor = .brandBlue
+        contentView.backgroundColor = .brandPurpleColor
 
         [cloudsView,
          windSpeedView,

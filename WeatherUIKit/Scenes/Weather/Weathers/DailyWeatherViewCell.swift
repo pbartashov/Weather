@@ -52,6 +52,7 @@ final class DailyWeatherViewCell: UICollectionViewCell {
         label.textAlignment = .left
         label.lineBreakMode = .byTruncatingMiddle
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         return label
     }()
@@ -160,9 +161,9 @@ final class DailyWeatherViewCell: UICollectionViewCell {
         //               timestampFormatter: DateFormatter) {
 
         dateLabel.text = weather.dayMonth
-        precipitationView.text = weather.precipcover
+        precipitationView.text = weather.precipprob
         descriptionLabel.text = weather.conditions
-        temperatureLabel.text = "\(weather.tempmin)-\(weather.tempmax)"
+        temperatureLabel.text = "\(weather.tempmin)-\(weather.tempmaxUnsigned)"
 
     }
 }

@@ -36,7 +36,10 @@ public final class UnitsFormatterContainer {
             $dayMonthFormatter.eraseTypeAndDuplicates(),
             $temperatureFormatter.eraseTypeAndDuplicates(),
             $speedFormatter.eraseTypeAndDuplicates(),
-            $speedUnits.eraseTypeAndDuplicates()
+            $speedUnits.eraseTypeAndDuplicates(),
+            $windDirectionFormatter.eraseTypeAndDuplicates(),
+            $moonphaseFormatter.eraseTypeAndDuplicates(),
+            $calendar.eraseTypeAndDuplicates()
         )
         .debounce(for: .seconds(0.1), scheduler: RunLoop.current)
         .eraseToAnyPublisher()
@@ -57,6 +60,10 @@ public final class UnitsFormatterContainer {
     @Published private(set) var speedUnits: UnitSpeed?
 
     @Published private(set) var windDirectionFormatter: WindDirectionFormatter = WindDirectionFormatter()
+
+    @Published private(set) var moonphaseFormatter: MoonphaseFormatter = MoonphaseFormatter()
+
+    @Published private(set) var calendar: Calendar?
 
     // MARK: - Views
 
@@ -194,11 +201,15 @@ public final class UnitsFormatterContainer {
         let weekDayMonthFormatter = DateFormatter()
         weekDayMonthFormatter.locale = Locale(identifier: "ru_RU")
 
-        if let timeZone = timeZone {
-            timeFormatter.timeZone = .init(identifier: timeZone)
-            datetimeFormatter.timeZone = .init(identifier: timeZone)
-            dayMonthFormatter.timeZone = .init(identifier: timeZone)
-            weekDayMonthFormatter.timeZone = .init(identifier: timeZone)
+        var calendar = Calendar(identifier: .iso8601)
+
+        if let timeZoneID = timeZone,
+           let newTimeZone = TimeZone(identifier: timeZoneID){
+            timeFormatter.timeZone = newTimeZone
+            datetimeFormatter.timeZone = newTimeZone
+            dayMonthFormatter.timeZone = newTimeZone
+            weekDayMonthFormatter.timeZone = newTimeZone
+            calendar.timeZone = newTimeZone
         }
 
         dayMonthFormatter.dateFormat = "dd/MM"
@@ -218,6 +229,7 @@ public final class UnitsFormatterContainer {
         self.datetimeFormatter = datetimeFormatter
         self.dayMonthFormatter = dayMonthFormatter
         self.weekDayMonthFormatter = weekDayMonthFormatter
+        self.calendar = calendar
     }
 
     func makeUnitsFormatter() -> UnitsFormatter? {
@@ -228,7 +240,8 @@ public final class UnitsFormatterContainer {
             let weekDayMonthFormatter = weekDayMonthFormatter,
             let temperatureFormatter = temperatureFormatter,
             let speedFormatter = speedFormatter,
-            let speedUnits = speedUnits
+            let speedUnits = speedUnits,
+            let calendar = calendar
         else {
             return nil
         }
@@ -240,7 +253,9 @@ public final class UnitsFormatterContainer {
                               temperatureFormatter: temperatureFormatter,
                               speedFormatter: speedFormatter,
                               speedUnits: speedUnits,
-                              windDirectionFormatter: windDirectionFormatter)
+                              windDirectionFormatter: windDirectionFormatter,
+                              moonphaseFormatter: moonphaseFormatter,
+                              calendar: calendar)
     }
 
     func setup(timeZone: String) {

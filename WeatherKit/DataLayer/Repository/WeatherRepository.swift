@@ -17,7 +17,7 @@ public protocol WeatherRepositoryProtocol {
     /// Creates a Weather on the persistance layer.
     func create(weather: Weather) async throws
     /// Creates or Updates existing Weather on the persistance layer.
-    func save(weather: Weather) async throws
+//    func save(weather: Weather) async throws
     /// Deletes a Weather from the persistance layer.
     func delete(weather: Weather) async throws
     /// Saves changes to Repository.
@@ -34,7 +34,7 @@ public protocol WeatherRepositoryProtocol {
 //    var currentWeatherPublisher: AnyPublisher<Weather, Never> { get }
 
     var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> { get }
-    var weatherPackPublisher: AnyPublisher<WeatherPack, Never> { get }
+//    var weatherPackPublisher: AnyPublisher<WeatherPack, Never> { get }
     //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> { get }
     //    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
 
@@ -71,10 +71,10 @@ public final class WeatherRepository {
             .eraseToAnyPublisher()
     }
 
-    private let weatherContainerSubject = PassthroughSubject<WeatherPack, Never>()
-    public var weatherPackPublisher: AnyPublisher<WeatherPack, Never> {
-        weatherContainerSubject.eraseToAnyPublisher()
-    }
+//    private let weatherContainerSubject = PassthroughSubject<WeatherPack, Never>()
+//    public var weatherPackPublisher: AnyPublisher<WeatherPack, Never> {
+//        weatherContainerSubject.eraseToAnyPublisher()
+//    }
 
 //    var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> {
 //        repository.fetchedResultsPublisher
@@ -208,9 +208,9 @@ extension WeatherRepository: WeatherRepositoryProtocol {
     }
 
     /// Creates or Updates existing Weather on the persistance layer.
-    public func save(weather: Weather) async throws {
-        try await create(weather: weather)
-    }
+//    public func save(weather: Weather) async throws {
+//        try await create(weather: weather)
+//    }
 
     private func getWeatherEntity(for weather: Weather) async throws -> WeatherEntity {
         //        let locationPredicate = getPredicate(latitude: weather.latitude, longitude: weather.longitude)
@@ -278,14 +278,14 @@ extension WeatherRepository: WeatherRepositoryProtocol {
                                      //        latitude: Double,
                                      //                                 longitude: Double
     ) async throws {
-        let weatherContainer: WeatherPack = try await requestManager.perform(
+        let weatherPack: WeatherPack = try await requestManager.perform(
             WeatherRequest.getCurrentDayWeatherFor(location: location)
         )
-        weatherContainerSubject.send(weatherContainer)
+//        weatherContainerSubject.send(weatherPack)
 
-        guard let todayWeather = weatherContainer.days.first else { return }
+        guard let todayWeather = weatherPack.days.first else { return }
 //        print(todayWeather)
-        if let currentWeather = weatherContainer.currentWeather  {
+        if let currentWeather = weatherPack.currentWeather  {
 //            print(currentWeather)
             try await store([currentWeather])
         }
@@ -318,11 +318,11 @@ extension WeatherRepository: WeatherRepositoryProtocol {
                                              dateInterval: DateInterval
     ) async throws {
 
-        let weatherContainer: WeatherPack = try await requestManager.perform(
+        let weatherPack: WeatherPack = try await requestManager.perform(
             WeatherRequest.getForecastWeatherFor(location: location, dateInterval: dateInterval)
         )
 
-            try await store(weatherContainer.days)
+            try await store(weatherPack.days)
     }
 
     private func store(_ weathers: [Weather]) async throws {

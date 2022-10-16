@@ -4,6 +4,27 @@
 <dict>
 	<key>CFBundleIcons</key>
 	<dict/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Доступ к геопозиции позволяет автоматически определять город</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>api.openweathermap.org</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSTemporaryExceptionMinimumTLSVersion</key>
+				<string>TLSv1.1</string>
+			</dict>
+			<key>New item</key>
+			<string></string>
+		</dict>
+	</dict>
 	<key>CFBundleIcons~ipad</key>
 	<dict/>
 	<key>UIApplicationSceneManifest</key>

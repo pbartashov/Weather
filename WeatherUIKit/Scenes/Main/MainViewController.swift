@@ -7,6 +7,7 @@
 
 import UIKit
 import WeatherKit
+import Combine
 
 public final class MainViewController: UIViewController {
 
@@ -23,9 +24,15 @@ public final class MainViewController: UIViewController {
     private let viewModel: MainViewModel
 
 
-    private var currentIndex: Int = 0
+    private var currentIndex: Int = 0 {
+        didSet {
+            pageControl.currentPage = currentIndex
+            updatePageControlUI(forIndex: currentIndex)
+            updateTitle()
+        }
+    }
     private var moveToIndex: Int = 0
-    private var moveFromIndex: Int = 0
+//    private var moveFromIndex: Int = 0
 //    private var nextIndex: Int = 0
 //    private var previousIndex: Int = 0
     let activePageIconImage = UIImage(named: "DotIcon")
@@ -34,13 +41,16 @@ public final class MainViewController: UIViewController {
     // Factories
     let makeWeatherViewController: (Int) -> WeathersViewController
     let makeSettingsViewController: () -> SettingsViewController
+    let makeAddLocationViewController: () -> AddLocationViewController
+    let makeOnboardingViewController: () -> OnboardingViewController
+    let makeSearchLocationViewController: () -> SearchLocationViewController
 
 //    private var locations = [LocationWeather(index: 0, cityName: "London"),
 //                        LocationWeather(index: 1, cityName: "Vladivostok"),
 //                        LocationWeather(index: 2, cityName: "San Diego")
 //    ]
 
-
+    private var subscriptions: Set<AnyCancellable> = []
 
 //    private var weatherViewControllers: [UIViewController] = [WeatherViewController(),
 //                                                      OnboardingViewController(), SettingsViewController()]
@@ -49,7 +59,7 @@ public final class MainViewController: UIViewController {
 
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl(frame: CGRect.zero)
-        pageControl.numberOfPages = viewModel.locations.count
+        pageControl.numberOfPages = 1
         pageControl.pageIndicatorTintColor = .brandTextColor
         pageControl.currentPageIndicatorTintColor = .brandTextColor
         pageControl.preferredIndicatorImage = otherPageIconImage
@@ -67,11 +77,17 @@ public final class MainViewController: UIViewController {
     public init(
         viewModel: MainViewModel,
         weatherViewControllerFactory: @escaping (Int) -> WeathersViewController,
-        settingsViewControllerFactory: @escaping ()-> SettingsViewController
+        settingsViewControllerFactory: @escaping ()-> SettingsViewController,
+        addLocationViewControllerFactory: @escaping ()-> AddLocationViewController,
+        onboardingViewControllerFactory: @escaping () -> OnboardingViewController,
+        searchLocationViewControllerFactory: @escaping () -> SearchLocationViewController
     ) {
         self.viewModel = viewModel
         self.makeWeatherViewController = weatherViewControllerFactory
         self.makeSettingsViewController = settingsViewControllerFactory
+        self.makeAddLocationViewController = addLocationViewControllerFactory
+        self.makeOnboardingViewController = onboardingViewControllerFactory
+        self.makeSearchLocationViewController = searchLocationViewControllerFactory
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -100,11 +116,22 @@ public final class MainViewController: UIViewController {
 //                                                      direction: .forward, animated: true)
 
 
-//
-        let viewConrtoller = makeWeatherViewController(0)
-        pageController.setViewControllers([viewConrtoller],
-                                          direction: .forward,
+        let viewController = makeAddLocationViewController()
+        pageController.setViewControllers([viewController],
+                                          direction: .reverse,
                                           animated: true)
+
+        //        if !viewModel.locations.isEmpty {
+        //            let viewConrtoller = makeWeatherViewController(0)
+//            pageController.setViewControllers([viewConrtoller],
+//                                              direction: .forward,
+//                                              animated: true)
+//        } else {
+//            let viewConrtoller = UIViewController()
+//            pageController.setViewControllers([viewConrtoller],
+//                                              direction: .forward,
+//                                              animated: true)
+//        }
 
 //        pageController.view.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)
 
@@ -135,6 +162,7 @@ public final class MainViewController: UIViewController {
         self.view.backgroundColor = UIColor(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
 
         setupNavigationBar()
+        setupBindings()
     }
 
 
@@ -163,15 +191,15 @@ public final class MainViewController: UIViewController {
         menu.tintColor = .brandTextColor
         navigationItem.leftBarButtonItem = menu
 
-        let search = UIBarButtonItem(image: UIImage(named: "PinIcon"),
+        let add = UIBarButtonItem(image: UIImage(named: "PinIcon"),
                                      style: .plain,
                                      target: self,
-                                     action: #selector(searchTapped))
+                                     action: #selector(addTapped))
 
-        search.tintColor = .brandTextColor
-        navigationItem.rightBarButtonItem = search
+        add.tintColor = .brandTextColor
+        navigationItem.rightBarButtonItem = add
 
-        title = viewModel.locations[currentIndex].cityName
+        updateTitle()
 
         navigationItem.backBarButtonItem = UIBarButtonItem(
             title: nil, style: .plain, target: nil, action: nil)
@@ -183,17 +211,14 @@ public final class MainViewController: UIViewController {
     }
 
     @objc private func menuTapped() {
-        let settings = makeSettingsViewController()
-//        settings.modalPresentationStyle = .fullScreen
-        navigationController?.pushViewController(settings, animated: true)
-//        present(settings, animated: true)
+        showSettings()
     }
 
-    @objc private func searchTapped() {
-
+    @objc private func addTapped() {
+        viewModel.handleAddLocation()
     }
 
-    func updatePageControlUI(forIndex currentIndex: Int) {
+    private func updatePageControlUI(forIndex currentIndex: Int) {
 
 //        pageControl.pageIndicatorTintColor = .systemYellow
 //        pageControl.currentPageIndicatorTintColor = .black
@@ -204,7 +229,98 @@ public final class MainViewController: UIViewController {
         }
 
 
-        title = viewModel.locations[currentIndex].cityName
+//        title = viewModel.locations[currentIndex].cityName
+
+    }
+
+    private func updateTitle() {
+        if currentIndex < viewModel.locations.count {
+            title = viewModel.locations[currentIndex].cityName
+        } else {
+            title =  "Добавьте новый город"
+        }
+    }
+
+    private func setupBindings() {
+        viewModel.$locations
+            .map { $0.count + 1 }
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.numberOfPages, on: pageControl)
+            .store(in: &subscriptions)
+
+        viewModel.$locations
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] locations in
+                guard let self = self, !locations.isEmpty else { return }
+                let viewController = self.makeWeatherViewController(0)
+                self.pageController.setViewControllers([viewController],
+                                                       direction: .reverse,
+                                                  animated: true)
+                self.currentIndex = 0
+            }
+            .store(in: &subscriptions)
+
+        viewModel.$mainSceneState
+            .sink { [weak self] state in
+                self?.showWeather()
+
+                switch state {
+                    case .showWeather:
+                        break
+                    case .showOnboarding:
+                        self?.showOnboarding()
+
+                    case .showSearchLocation:
+                        self?.showSearchLocation()
+                }
+            }
+            .store(in: &subscriptions)
+    }
+
+    private func showWeather() {
+        if presentedViewController is OnboardingViewController ||
+            presentedViewController is SearchLocationViewController {
+            #warning("alert is self dissmissed")
+
+            dismiss(animated: true)
+        }
+    }
+
+    private func showOnboarding() {
+        let onboarding = makeOnboardingViewController()
+        onboarding.modalPresentationStyle = .fullScreen
+        present(onboarding, animated: true)
+    }
+
+    private func showSearchLocation() {
+//        let ac = UIAlertController(title: "Enter answer", message: nil, preferredStyle: .alert)
+//        ac.addTextField()
+//
+//        ac.aut
+//
+//        let submitAction = UIAlertAction(title: "Submit", style: .default) { [unowned ac] _ in
+//            let answer = ac.textFields![0]
+//            // do something interesting with "answer" here
+//        }
+//
+//        ac.addAction(submitAction)
+//
+//        present(ac, animated: true)
+//
+//return
+
+
+        let search = makeSearchLocationViewController()
+//        search.modalPresentationStyle = .currentContext
+        present(search, animated: true)
+//        navigationController?.pushViewController(search, animated: true)
+    }
+
+    private func showSettings() {
+        let settings = makeSettingsViewController()
+        //        settings.modalPresentationStyle = .fullScreen
+        navigationController?.pushViewController(settings, animated: true)
+        //        present(settings, animated: true)
 
     }
 }
@@ -215,8 +331,14 @@ public final class MainViewController: UIViewController {
 extension MainViewController: UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController,
                             willTransitionTo pendingViewControllers: [UIViewController]) {
-        guard let nextViewController = pendingViewControllers.first as? WeathersViewController else { return }
-        moveToIndex = nextViewController.locationID
+//        guard let nextViewController = pendingViewControllers.first as? WeathersViewController else { return }
+//        moveToIndex = nextViewController.locationID
+        let firstPending = pendingViewControllers.first
+        if let nextViewController = firstPending as? WeathersViewController {
+            moveToIndex = nextViewController.locationID
+        } else if firstPending is AddLocationViewController {
+            moveToIndex = currentIndex + 1
+        }
     }
 
 
@@ -226,8 +348,6 @@ extension MainViewController: UIPageViewControllerDelegate {
                             transitionCompleted completed: Bool) {
         if completed {
             currentIndex = moveToIndex
-            pageControl.currentPage = currentIndex
-            updatePageControlUI(forIndex: currentIndex)
         }
 
 //        guard let selectedViewController = pageViewController.viewControllers?.first else { return }
@@ -236,6 +356,9 @@ extension MainViewController: UIPageViewControllerDelegate {
 //            pageControl?.currentPage = indexOfSelectViewController
 //        }
     }
+
+
+    
 }
 
 
@@ -273,13 +396,26 @@ extension MainViewController: UIPageViewControllerDataSource {
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
 
 //        let indexOfCurrentPageViewController = locations.firstIndex { $0.index == currentIndex } ?? locations.count
-        if currentIndex >= viewModel.locations.count - 1 {
-            return nil // To show there is no next page
-        } else {
-            // Next UIViewController instance
-//            moveToIndex = currentIndex + 1
-            return makeWeatherViewController(currentIndex + 1)
-//            return WeatherViewController(viewModel: viewModel.locations[currentIndex + 1])
+//        if currentIndex >= viewModel.locations.count - 1 {
+//            return nil // To show there is no next page
+//        } else {
+//            // Next UIViewController instance
+////            moveToIndex = currentIndex + 1
+//            return makeWeatherViewController(currentIndex + 1)
+////            return WeatherViewController(viewModel: viewModel.locations[currentIndex + 1])
+//        }
+//        let addLocationIndex =
+        let maxLocationIndex = viewModel.locations.count - 1
+
+        switch currentIndex {
+            case 0..<maxLocationIndex:
+                return makeWeatherViewController(currentIndex + 1)
+
+            case maxLocationIndex:
+                return makeAddLocationViewController()
+
+            default:
+                return nil
         }
     }
 

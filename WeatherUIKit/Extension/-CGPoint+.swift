@@ -13,7 +13,7 @@ extension CGPoint {
     /// - Parameters:
     ///   - dx: The x-coordinate offset to apply.
     ///   - dy: The y-coordinate offset to apply.
-    ///
+    //Users/pavelbartasov/Documents/Projects/HW/Weather/WeatherUIKit/Extension/CGPoint.swift//
     /// - Returns:
     ///   A new point which is an offset of an existing point.
     func offsetBy(dx: CGFloat, dy: CGFloat) -> CGPoint {

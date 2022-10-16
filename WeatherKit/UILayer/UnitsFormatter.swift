@@ -54,6 +54,10 @@ public final class UnitsFormatter {
 
     private let windDirectionFormatter: WindDirectionFormatter
 
+    private let moonphaseFormatter: MoonphaseFormatter
+
+    private let calendar: Calendar
+
     // MARK: - Views
 
     // MARK: - LifeCicle
@@ -71,7 +75,9 @@ public final class UnitsFormatter {
                 temperatureFormatter: MeasurementFormatter,
                 speedFormatter: MeasurementFormatter,
                 speedUnits: UnitSpeed,
-                windDirectionFormatter: WindDirectionFormatter
+                windDirectionFormatter: WindDirectionFormatter,
+                moonphaseFormatter: MoonphaseFormatter,
+                calendar: Calendar
     ) {
         self.timeFormatter = timeFormatter
         self.datetimeFormatter = datetimeFormatter
@@ -81,6 +87,8 @@ public final class UnitsFormatter {
         self.speedFormatter = speedFormatter
         self.speedUnits = speedUnits
         self.windDirectionFormatter = windDirectionFormatter
+        self.moonphaseFormatter = moonphaseFormatter
+        self.calendar = calendar
     }
 
     // MARK: - Metods
@@ -232,13 +240,22 @@ extension UnitsFormatter: WeartherFormatterProtocol {
 //        print("format(temperature: Double)")
 //
 //        print(Date(timeIntervalSince1970: 0))
+        var rounded = temperature.rounded()
+        if rounded == -0.0 {
+            rounded = 0.0
+        }
 
-        temperatureFormatter.string(from: Measurement(value: temperature, unit: UnitTemperature.celsius))
+        return temperatureFormatter.string(from: Measurement(value: rounded, unit: UnitTemperature.celsius))
+    }
+
+    public func format(unsignedTemperature: Double) -> String {
+        let unsigned = unsignedTemperature.magnitude
+
+        return temperatureFormatter.string(from: Measurement(value: unsigned, unit: UnitTemperature.celsius))
     }
 
     public func format(feelslike: Double) -> String {
-        let feelslike = temperatureFormatter.string(from: Measurement(value: feelslike, unit: UnitTemperature.celsius))
-        return "По ощущению \(feelslike)"
+        temperatureFormatter.string(from: Measurement(value: feelslike, unit: UnitTemperature.celsius))
     }
 
     public func format(speed: Double) -> String {
@@ -292,10 +309,26 @@ extension UnitsFormatter: WeartherFormatterProtocol {
         "\(String(format: "%.0f", humidity))%"
     }
 
-    public func format(precipcover: Double) -> String {
-        "\(String(format: "%.0f", precipcover))%"
+    public func format(precipprob: Double) -> String {
+        "\(String(format: "%.0f", precipprob))%"
     }
 
+    public func format(uvIndex: Double) -> String {
+        String(format: "%.1f", uvIndex)
+    }
+
+    public func format(moonphase: Double) -> String {
+        moonphaseFormatter.string(from: moonphase)
+    }
+
+    public func format(fromDate: Date, toDate: Date) -> String {
+        let diffComponents = calendar.dateComponents([.hour, .minute], from: fromDate, to: toDate)
+        return "\(diffComponents.hour ?? 0) ч \(diffComponents.minute ?? 0) мин"
+    }
+
+    public func getWeatherLocalHour(from date: Date) -> Int {
+        calendar.component(.hour, from: date)
+    }
 
 
 }
@@ -306,7 +339,12 @@ extension UnitsFormatter: Hashable {
         lhs.datetimeFormatter == rhs.datetimeFormatter &&
         lhs.temperatureFormatter == rhs.temperatureFormatter &&
         lhs.speedFormatter == rhs.speedFormatter &&
-        lhs.speedUnits == rhs.speedUnits
+        lhs.speedUnits == rhs.speedUnits &&
+        lhs.dayMonthFormatter == rhs.dayMonthFormatter &&
+        lhs.speedUnits == rhs.weekDayMonthFormatter &&
+        lhs.windDirectionFormatter == rhs.windDirectionFormatter &&
+        lhs.moonphaseFormatter == rhs.moonphaseFormatter &&
+        lhs.calendar == rhs.calendar
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -315,5 +353,10 @@ extension UnitsFormatter: Hashable {
         hasher.combine(temperatureFormatter)
         hasher.combine(speedFormatter)
         hasher.combine(speedUnits)
+        hasher.combine(dayMonthFormatter)
+        hasher.combine(weekDayMonthFormatter)
+        hasher.combine(windDirectionFormatter)
+        hasher.combine(moonphaseFormatter)
+        hasher.combine(calendar)
     }
 }
