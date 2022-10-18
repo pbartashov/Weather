@@ -33,13 +33,14 @@ public final class WeathersViewModel: ViewModel {
 //        return datetimeFormatter
 //    }()
 
-    public private(set) var location: WeatherLocation
+    @Published public private(set) var location: WeatherLocation
 
-    @Published public private(set) var forecastHorizon: ForecastTimeHorizon = .small {
-        didSet {
-            reloadDailyWeather()
-        }
-    }
+    @Published public private(set) var forecastHorizon: ForecastTimeHorizon = .small
+//    {
+//        didSet {
+//            reloadDailyWeather()
+//        }
+//    }
 
     public var toggleForecastHorizonTitle: String {
         switch forecastHorizon {
@@ -56,8 +57,11 @@ public final class WeathersViewModel: ViewModel {
     @Published public private(set) var dailyWeather: [WeatherViewModel] = []
 
     private var toggleForecastTimeHorizonSubscription: AnyCancellable?
+    private var removePageSubscription: AnyCancellable?
 
     private let weatherRepository: WeatherRepositoryProtocol
+
+    private let removePageResponder: RemovePageResponder
 
 
 
@@ -67,12 +71,14 @@ public final class WeathersViewModel: ViewModel {
     public init(
         location: WeatherLocation,
         weatherRepository: WeatherRepositoryProtocol,
-        unitsFormatterContainer: UnitsFormatterContainer
+        unitsFormatterContainer: UnitsFormatterContainer,
+        removePageResponder: RemovePageResponder
 
     ) {
         self.location = location
         self.weatherRepository = weatherRepository
         self.formatterContainer = unitsFormatterContainer
+        self.removePageResponder = removePageResponder
 
         super.init()
         
@@ -180,15 +186,15 @@ public final class WeathersViewModel: ViewModel {
             }
             .assign(to: &$dailyWeather)
 
-//        weatherRepository.weatherPackPublisher
-//            .map(\.timezone)
-////            .assign(to: \.timeZone, on: location)
-//            .sink { [weak self] in
-//                guard let self = self else { return }
-//                self.location.timeZone = $0
-//                self.formatterContainer.setup(timeZone: $0)
-//            }
-//            .store(in: &subscriptions)
+        weatherRepository.weatherPackPublisher
+            .map(\.timezone)
+//            .assign(to: \.timeZone, on: location)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                self.location.timeZone = $0
+                self.formatterContainer.setup(timeZone: $0)
+            }
+            .store(in: &subscriptions)
     }
 
 
@@ -200,7 +206,7 @@ public final class WeathersViewModel: ViewModel {
 //        }
 //    }
 
-    public func fetchWeather() async {
+    public func fetchWeathers() async {
 //        await fetchCurrentWeather()
 //    }
 //
@@ -229,7 +235,15 @@ public final class WeathersViewModel: ViewModel {
             errorMessagesSubject.send(error)
         }
     }
-    //     public let errorPresentation = PassthroughSubject<ErrorPresentation?, Never>()
+
+    private func fetchDailyWeather() async {
+        do {
+            try await weatherRepository.fetchForecastWeatherFromAPI(for: location,
+                                                                dateInterval: forecastHorizon.dateInterval)
+        } catch {
+            errorMessagesSubject.send(error)
+        }
+    }
 
     public func subscribeToggleForecastHorizon(to publisher: AnyPublisher<Void, Never>) {
         toggleForecastTimeHorizonSubscription = publisher
@@ -238,25 +252,38 @@ public final class WeathersViewModel: ViewModel {
             }
     }
 
+    public func subscribeRemovePage(to publisher: AnyPublisher<Void, Never>) {
+        removePageSubscription = publisher
+            .sink {[weak self] in
+                guard let self = self else { return }
+                self.removePageResponder.remove(location: self.location)
+            }
+    }
+
     private func toggleForecastHorizon() {
         switch forecastHorizon {
             case .small:
-                forecastHorizon = .large
+                Task {
+                    forecastHorizon = .large
+                    await fetchDailyWeather()
+                }
 
             case .large:
                 forecastHorizon = .small
         }
     }
 
-    private func reloadDailyWeather() {
-        switch forecastHorizon {
-            case .small:
-                dailyWeather = Array(dailyWeather.prefix(forecastHorizon.days))
-            case .large:
-                ()
 
-        }
-    }
+    //    private func reloadDailyWeather() {
+//        switch forecastHorizon {
+//            case .small:
+//                dailyWeather = Array(dailyWeather.prefix(forecastHorizon.days))
+//
+//            case .large:
+//                ()
+//
+//        }
+//    }
 
 //    private func configureTemperatureFormatters(with format: Settings.Temperature) {
 //

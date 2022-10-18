@@ -10,6 +10,7 @@ enum WeatherRequest: RequestProtocol {
     case getCurrentDayWeatherFor(location: WeatherLocation)
     case getForecastWeatherFor(location: WeatherLocation, dateInterval: DateInterval)
     case getHourlyWeatherFor(location: WeatherLocation, date: Date)
+    case getCurrentWeatherFor(latitude: Double, longitude: Double)
 //    case getForecastWeatherFor(latitude: Double, longitude: Double, since: Date, till: Date)
 //    case getWeatherFor7Days(latitude: Double, longitude: Double, since: Date, till: Date)
 //    case getWeatherFor15Days(latitude: Double, longitude: Double)
@@ -54,7 +55,10 @@ enum WeatherRequest: RequestProtocol {
                 let dateString = dateFormatter.string(from: date)
 
                 return "\(basePath)/\(location.latitude),\(location.longitude)/\(dateString)/\(dateString)"
-        }
+
+            case let .getCurrentWeatherFor(latitude, longitude):
+                return "\(basePath)/\(latitude),\(longitude)/today"
+     }
     }
 
 //https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/vladivostok/today?unitGroup=us&include=current%2Chours&key=YQ8FCBUW53CPXSWQKMQVPLFZY&contentType=json
@@ -84,6 +88,9 @@ enum WeatherRequest: RequestProtocol {
 
             case .getHourlyWeatherFor:
                 urlParams["include"] = "hours"
+
+            case .getCurrentWeatherFor:
+                urlParams["include"] = "current"
         }
 
         return urlParams

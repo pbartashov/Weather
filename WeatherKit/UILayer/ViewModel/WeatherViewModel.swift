@@ -78,6 +78,10 @@ public struct WeatherViewModel {
         formatter.format(time: weather.datetimeEpoch)
     }
 
+    public var timeDigitsOnly: String {
+        "\(time.dropLast(3))"
+    }
+
     public var tempValue: Double {
         weather.temp
     }

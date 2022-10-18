@@ -91,8 +91,6 @@ public final class Settings {
 
 
 
-
-
     // MARK: - Views
 
     // MARK: - LifeCicle
@@ -145,6 +143,11 @@ public final class Settings {
     //        let newTemperature = settingsStorage.restoreNotificationsEnabled()
     //        if temperature !=
     //    }
+
+
+    public func isFirstLaunch() -> Bool {
+        settingsStorage.isFirstLaunch()
+    }
 }
 
 
@@ -167,7 +170,7 @@ extension Settings.Speed {
 }
 
 extension Settings.TimeFormat {
-    static let defaultValue = Settings.TimeFormat.format12
+    static let defaultValue = Settings.TimeFormat.format24
 
 
     init(_ value: Int) {

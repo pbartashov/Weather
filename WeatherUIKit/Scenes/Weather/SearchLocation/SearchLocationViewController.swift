@@ -9,88 +9,203 @@ import UIKit
 import WeatherKit
 import Combine
 
-
 public class SearchLocationViewController: UITableViewController, UISearchResultsUpdating {
-//    private var tableView: UITableView: UITableView = {
-//        let tableView = UITableView()
-//        tableView.regi
-//    }()
+    //    private var tableView: UITableView: UITableView = {
+    //        let tableView = UITableView()
+    //        tableView.regi
+    //    }()
+
+    private enum Section: Hashable {
+        case addresses
+    }
+
+    private enum Cell: Hashable {
+        case address(LocationAddress)
+    }
+
+    // MARK: - Properties
+
+    private let viewModel: SearchLocationViewModel
     private let searchLocationResponder: SearchLocationResponder
+
     //
 
-    let data = ["New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX",
-                "Philadelphia, PA", "Phoenix, AZ", "San Diego, CA", "San Antonio, TX",
-                "Dallas, TX", "Detroit, MI", "San Jose, CA", "Indianapolis, IN",
-                "Jacksonville, FL", "San Francisco, CA", "Columbus, OH", "Austin, TX",
-                "Memphis, TN", "Baltimore, MD", "Charlotte, ND", "Fort Worth, TX"]
+//    let data = ["New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX",
+//                "Philadelphia, PA", "Phoenix, AZ", "San Diego, CA", "San Antonio, TX",
+//                "Dallas, TX", "Detroit, MI", "San Jose, CA", "Indianapolis, IN",
+//                "Jacksonville, FL", "San Francisco, CA", "Columbus, OH", "Austin, TX",
+//                "Memphis, TN", "Baltimore, MD", "Charlotte, ND", "Fort Worth, TX"]
+//
+//    var filteredData: [String]!
+    private var subscriptions = Set<AnyCancellable>()
 
-    var filteredData: [String]!
 
-    var searchController: UISearchController!
+    private lazy var dataSource: UITableViewDiffableDataSource<Section, Cell> = {
+        let tableViewDataSource = UITableViewDiffableDataSource<Section, Cell>(
+            tableView: tableView,
+            cellProvider: { [weak self] (tableView, indexPath, cell) -> UITableViewCell? in
+                guard
+                    let self = self,
+                    let tableCell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.identifier),
+                    case let .address(address) = cell
+                else {
+                    return UITableViewCell()
+                }
+//                let address = self.viewModel.addresses[indexPath.row]
+                var content = tableCell.defaultContentConfiguration()
+
+                content.text = address.city
+                content.secondaryText = address.country
+                tableCell.contentConfiguration = content
+
+                return tableCell
+            })
+
+        return tableViewDataSource
+    }()
+
+    private var snapshot: NSDiffableDataSourceSnapshot<Section, Cell> {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Cell>()
+        snapshot.appendSections([.addresses])
+        let cells = viewModel.addresses.map {
+            Cell.address($0)
+        }
+        snapshot.appendItems(cells, toSection: .addresses)
+
+        return snapshot
+    }
+    // MARK: - Views
+
+    
+
+    private var searchController: UISearchController?
+//    private var searchBar: UISearchBar!
+
+    // MARK: - LifeCicle
 
     public init(
-            searchLocationResponder: SearchLocationResponder
-        ) {
-            self.searchLocationResponder = searchLocationResponder
+        viewModel: SearchLocationViewModel,
+        searchLocationResponder: SearchLocationResponder
+    ) {
+        self.viewModel = viewModel
+        self.searchLocationResponder = searchLocationResponder
 
-//            super.init(searchResultsController: UIViewController())
-            super.init(nibName: nil, bundle: nil)
-
-
-    //        modalTransitionStyle = .partialCurl
-//            modalPresentationStyle = .formSheet//UIModalPresentationFormSheet
-    //        initialize()
+        //            super.init(searchResultsController: UIViewController())
+        super.init(nibName: nil, bundle: nil)
 
 
-            tableView.register(UITableViewCell.self, forCellReuseIdentifier: UITableViewCell.identifier)
-        }
+        //        modalTransitionStyle = .partialCurl
+        //            modalPresentationStyle = .formSheet//UIModalPresentationFormSheet
+        //        initialize()
 
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
 
-        }
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: UITableViewCell.identifier)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+
+    }
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        initialize()
 
+        viewModel.fetchCurrentLocality()
+    }
+
+    // MARK: - Metods
+
+    private func initialize() {
         tableView.dataSource = self
-        filteredData = data
+        //        filteredData = data
 
         // Initializing with searchResultsController set to nil means that
         // searchController will use this view controller to display the search results
-        searchController = UISearchController(searchResultsController: nil)
+        let searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
-
-        // If we are using this same view controller to present the results
-        // dimming it out wouldn't make sense. Should probably only set
-        // this to yes if using another controller to display the search results.
-        searchController.dimsBackgroundDuringPresentation = false
 
         searchController.searchBar.sizeToFit()
         tableView.tableHeaderView = searchController.searchBar
 
+        self.searchController = searchController
+//        self.searchBar = searchController.searchBar
         // Sets this view controller as presenting view controller for the search interface
         definesPresentationContext = true
+
+        bindToViewModel()
     }
 
-    public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.identifier)!
-        cell.textLabel?.text = filteredData[indexPath.row]
-        return cell
-    }
+    private func bindToViewModel() {
+        func bindViewModelToErrors() {
+            viewModel.errorMessages
+                .receive(on: DispatchQueue.main)
+                .sink { error in
+                    ErrorPresenter.shared.show(error: error)
+                }
+                .store(in: &subscriptions)
+        }
 
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredData.count
+        func bindViewModelToSearchText() {
+            guard let searchBar = searchController?.searchBar else { return }
+            viewModel.$searchText
+                .receive(on: DispatchQueue.main)
+                .assign(to: \.text, on: searchBar)
+                .store(in: &subscriptions)
+        }
+
+        func bindViewModelToAddresses() {
+            viewModel.$addresses
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.applySnapshot()
+                }
+                .store(in: &subscriptions)
+        }
+
+        bindViewModelToErrors()
+        bindViewModelToSearchText()
+        bindViewModelToAddresses()
     }
+    
+//    public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        guard let cell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.identifier) else {
+//            return UITableViewCell()
+//        }
+//        let address = viewModel.addresses[indexPath.row]
+//        var content = cell.defaultContentConfiguration()
+//
+//        content.text = address.city
+//        content.secondaryText = address.country
+//        cell.contentConfiguration = content
+//
+//        return cell
+//    }
+//
+//    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+//        return viewModel.addresses.count
+//    }
 
     public func updateSearchResults(for searchController: UISearchController) {
-        if let searchText = searchController.searchBar.text {
-            filteredData = searchText.isEmpty ? data : data.filter({(dataString: String) -> Bool in
-                return dataString.range(of: searchText, options: .caseInsensitive) != nil
-            })
-
-            tableView.reloadData()
+        if let searchText = searchController.searchBar.text,
+           !searchText.isEmpty {
+//            filteredData = searchText.isEmpty ? data : data.filter({(dataString: String) -> Bool in
+//                return dataString.range(of: searchText, options: .caseInsensitive) != nil
+//            })
+            viewModel.fetch(locality: searchText)
+//            tableView.reloadData()
         }
+    }
+
+    private func applySnapshot() {
+        if view.window != nil {
+            dataSource.apply(snapshot)
+        }
+    }
+
+    public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let address = viewModel.addresses[indexPath.row]
+        searchLocationResponder.selected(address: address)
     }
 }
 

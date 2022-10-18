@@ -316,7 +316,7 @@ public final class HourlyWeatherViewController: UICollectionViewController {
         let temperaturesTexts = weathers.map { $0.temp }
         let images = weathers.map { $0.icon.icon }
         let precipprob = weathers.map { $0.precipprob }
-        let times = weathers.map { $0.time }
+        let times = weathers.map { $0.timeDigitsOnly }
 
         cell.setup(chartData: temperatures,
                    chartDataLabels: temperaturesTexts,

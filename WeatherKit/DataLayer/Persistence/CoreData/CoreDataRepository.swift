@@ -57,34 +57,45 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
     ///   - sortDescriptors: The sort descriptors used for sorting the returned array of entities.
     /// - Returns: A result consisting of NSManagedObject entities.
     func get(predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?) async throws -> [Entity] {
-        try await context.perform { [weak self] in
+        let objectIDs: [NSManagedObjectID]? = try await context.perform { [weak self] in
             // Create a fetch request for the associated NSManagedObjectContext type.
             let fetchRequest = Entity.fetchRequest()
             fetchRequest.predicate = predicate
             fetchRequest.sortDescriptors = sortDescriptors
 
             let fetchResults = try self?.context.fetch(fetchRequest)
+            return fetchResults?.compactMap { ($0 as? Entity)?.objectID }
+//            if let results = fetchResults as? [Entity] {
+//                return results.map { $0.objectID }
+//            } else {
+//                throw DatabaseError.invalidManagedObjectType
+//            }
+        }
 
-            if let results = fetchResults as? [Entity] {
-                return results
-            } else {
-                throw DatabaseError.invalidManagedObjectType
-            }
+        if let results = objectIDs?.compactMap({ context.object(with: $0) as? Entity }) {
+            return results
+        } else {
+            throw DatabaseError.invalidManagedObjectType
         }
     }
     
     /// Creates a NSManagedObject entity.
     /// - Returns: A result consisting of a NSManagedObject entity.
     func create() async throws -> Entity {
-        try await context.perform { [weak self] in
+        let objectID: NSManagedObjectID = try await context.perform { [weak self] in
             let className = String(describing: Entity.self)
-            guard let self = self,
-                  let managedObject = NSEntityDescription.insertNewObject(forEntityName: className,
-                                                                          into: self.context) as? Entity
-            else {
-                throw DatabaseError.invalidManagedObjectType
+            guard let self = self else {
+                throw DatabaseError.error(desription: "Repository deallocated")
             }
-            return managedObject
+            let managedObject = NSEntityDescription.insertNewObject(forEntityName: className,
+                                                                       into: self.context)
+            return managedObject.objectID
+        }
+
+        if let result = context.object(with: objectID) as? Entity {
+            return result
+        } else {
+            throw DatabaseError.invalidManagedObjectType
         }
     }
     

@@ -31,6 +31,7 @@ public final class WeathersViewController: UICollectionViewController {
     enum SupplementaryViewKind {
         static let hourlyWeatherHeader = "hourly"
         static let dailyWeatherHeader = "daily"
+        static let removePageFooter = "remove"
         //        static let bottomLine = "bottomLine"
     }
 
@@ -155,7 +156,7 @@ public final class WeathersViewController: UICollectionViewController {
         bindViewModelToViews()
         //        bindSettings()
 
-        fetchWeather()
+        fetchWeathers()
 
     }
 
@@ -171,9 +172,9 @@ public final class WeathersViewController: UICollectionViewController {
 
     // MARK: - Metods
 
-    private func fetchWeather() {
+    private func fetchWeathers() {
         Task {
-            await viewModel.fetchWeather()
+            await viewModel.fetchWeathers()
         }
     }
 
@@ -201,6 +202,13 @@ public final class WeathersViewController: UICollectionViewController {
         collectionView.register(WeatherSectionHeaderView.self,
                                 forSupplementaryViewOfKind: SupplementaryViewKind.dailyWeatherHeader,
                                 withReuseIdentifier: WeatherSectionHeaderView.identifier)
+
+        collectionView.register(RemovePageView.self,
+                                forSupplementaryViewOfKind: SupplementaryViewKind.removePageFooter,
+                                withReuseIdentifier: RemovePageView.identifier)
+
+
+
         //        collectionView.register(LineView.self, forSupplementaryViewOfKind:
         //                                    SupplementaryViewKind.topLine, withReuseIdentifier:
         //                                    LineView.reuseIdentifier)
@@ -209,7 +217,7 @@ public final class WeathersViewController: UICollectionViewController {
         //                                    LineView.reuseIdentifier)
 
         collectionView.contentInsetAdjustmentBehavior = .never
-        collectionView.contentInset = .init(top: 112, left: 0, bottom: 0, right: 0)
+        collectionView.contentInset = .init(top: 112, left: 0, bottom: 16, right: 0)
         //        collectionView.bounces = false
         //        collectionView.alwaysBounceHorizontal = false
         configureDataSource()
@@ -228,7 +236,7 @@ public final class WeathersViewController: UICollectionViewController {
     }
 
     @objc func handleRefreshControl() {
-        fetchWeather()
+        fetchWeathers()
     }
 
     private func createLayout() -> UICollectionViewLayout {
@@ -244,6 +252,12 @@ public final class WeathersViewController: UICollectionViewController {
             let dailyWeatherHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
                                                                                      elementKind: SupplementaryViewKind.dailyWeatherHeader,
                                                                                      alignment: .topTrailing)
+
+            let footerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                        heightDimension: .estimated(31))
+            let removePageFooterItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerItemSize,
+                                                                                     elementKind: SupplementaryViewKind.removePageFooter,
+                                                                                     alignment: .bottom)
 
             //            let lineItemHeight = 1 / layoutEnvironment.traitCollection.displayScale
             //            let lineItemSize =
@@ -366,9 +380,9 @@ public final class WeathersViewController: UICollectionViewController {
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16,
-                                                                    bottom: 20, trailing: 16)
+                                                                    bottom: 6, trailing: 16)
 
-                    section.boundarySupplementaryItems = [dailyWeatherHeaderItem]
+                    section.boundarySupplementaryItems = [dailyWeatherHeaderItem, removePageFooterItem]
 
                     return section
             }
@@ -479,6 +493,22 @@ public final class WeathersViewController: UICollectionViewController {
 
                     return headerView
 
+                case SupplementaryViewKind.removePageFooter:
+                    guard
+                        let footerView = collectionView.dequeueReusableSupplementaryView(
+                            ofKind: SupplementaryViewKind.removePageFooter,
+                            withReuseIdentifier: RemovePageView.identifier,
+                            for: indexPath
+                        ) as? RemovePageView
+                    else {
+                        return nil
+                    }
+
+                    let publisher = footerView.buttonTappedPublisher.eraseType()
+                    self.viewModel.subscribeRemovePage(to: publisher)
+
+                    return footerView
+
                 default:
                     return nil
             }
@@ -539,8 +569,8 @@ public final class WeathersViewController: UICollectionViewController {
 //                $hourlyWeatherSection.eraseTypeAndDuplicates(),
                 $dailyWeatherSection.eraseTypeAndDuplicates()
             )
-            .debounce(for: .seconds(0.5), scheduler: RunLoop.current)
             .receive(on: DispatchQueue.main)
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] in
                 self?.collectionView.refreshControl?.endRefreshing()
                 self?.applySnapshot()

@@ -71,6 +71,8 @@ final class DailyWeatherViewCell: UICollectionViewCell {
         let imageView = UIImageView(image: image)
         imageView.tintColor = .black
 
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
         return imageView
     }()
 

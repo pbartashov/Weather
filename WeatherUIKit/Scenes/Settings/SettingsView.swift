@@ -18,7 +18,7 @@ final class SettingsView: UIView {
     // MARK: - Properties
 
 
-    private let settings = Settings.shared
+    private let settings: Settings
 
     private let buttonTapped = PassthroughSubject<Button, Never>()
     var buttonTappedPublisher: AnyPublisher<Button, Never> {
@@ -189,8 +189,9 @@ final class SettingsView: UIView {
 
     // MARK: - LifeCicle
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(settings: Settings = Settings.shared) {
+        self.settings = settings
+        super.init(frame: .zero)
 
         initialize()
     }

@@ -23,6 +23,8 @@ public protocol WeatherLocationRepositoryProtocol {
     /// Saves changes to Repository.
     func saveChanges() async throws
 
+//    func create(cityName: String, latitude: Double, longitude: Double) async throws
+
 
 
 
@@ -32,6 +34,8 @@ public protocol WeatherLocationRepositoryProtocol {
 //                           sortDescriptors: [NSSortDescriptor]?) throws
 
     func startFetchingWeatherLocation() async throws
+
+    func reindex() async throws
 }
 
 /// WeatherLocation Repository class.
@@ -83,19 +87,22 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         ]
     }
 
-    private func mapToWeatherLocation(locationEntities: [WeatherLocationEntity]) -> [WeatherLocation] {
+    private func mapToWeatherLocation(locationEntities: [WeatherLocationEntity]
+    ) -> [WeatherLocation] {
         locationEntities.map { $0.toDomainModel() }
     }
 
-    private func getPredicate(latitude: Double,
-                              longitude: Double) -> NSPredicate {
+    private func getPredicate(index: Int
+    //latitude: Double,
+                              //longitude: Double
+    ) -> NSPredicate {
         //                              locationType: WeatherLocationType) -> NSPredicate {
-        //        NSPredicate(format: "locationType == %@ AND latitude BETWEEN { %@ , %@ } AND longitude BETWEEN { %@ , %@ }",
-        NSPredicate(format: "latitude BETWEEN { %@ , %@ } AND longitude BETWEEN { %@ , %@ }",
-                    NSNumber(value: latitude - Constants.locationAccuracy),
-                    NSNumber(value: latitude + Constants.locationAccuracy),
-                    NSNumber(value: longitude - Constants.locationAccuracy),
-                    NSNumber(value: longitude + Constants.locationAccuracy))
+                NSPredicate(format: "index == %@", NSNumber(value: index))
+//        NSPredicate(format: "latitude BETWEEN { %@ , %@ } AND longitude BETWEEN { %@ , %@ }",
+//                    NSNumber(value: latitude - Constants.locationAccuracy),
+//                    NSNumber(value: latitude + Constants.locationAccuracy),
+//                    NSNumber(value: longitude - Constants.locationAccuracy),
+//                    NSNumber(value: longitude + Constants.locationAccuracy))
     }
 
 
@@ -129,6 +136,16 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         }
     }
 
+
+
+//    public func create(cityName: String, latitude: Double, longitude: Double) async throws {
+//       let location = WeatherLocation(index: 0,
+//                                cityName: city,
+//                                latitude: latitude,
+//                                longitude: longitude)
+//            }
+//    }
+
     private func getWeatherLocationEntity(for location: WeatherLocation) async throws -> WeatherLocationEntity {
         //        let locationPredicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
         //        let typePredicate = NSPredicate(format: "locationType == %@", location.locationType.rawValue)
@@ -144,11 +161,12 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
     }
 
     private func getWeatherLocationEntities(for location: WeatherLocation) async throws -> [WeatherLocationEntity] {
-        let locationPredicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
+        let predicate = getPredicate(index: location.index)
+//        let locationPredicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
 //        let typePredicate = NSPredicate(format: "weatherTypeRaw == %@", NSNumber(value:  weather.weatherType.rawValue))
 //        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [locationPredicate, typePredicate])
 
-        return try await repository.get(predicate: locationPredicate, sortDescriptors: mainSortDescriptors)
+        return try await repository.get(predicate: predicate, sortDescriptors: mainSortDescriptors)
     }
 
     /// Save the NSManagedObjectContext.
@@ -174,6 +192,19 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         //                                         sectionNameKeyPath: "weatherTypeRaw")
 
 //        try await fetchCurrentDayWeatherLocationFromAPI(for: location)
+    }
+
+
+    public func reindex() async throws {
+        let sortDescriptor = NSSortDescriptor(keyPath: \WeatherLocationEntity.index, ascending: true)
+        let locationEntities = try await repository.get(predicate: nil,
+                                                        sortDescriptors: [sortDescriptor])
+
+        for (i, entity) in locationEntities.enumerated() where entity.index != i {
+            entity.index = Int16(i)
+        }
+
+        try await saveChanges()
     }
 
 //    private func fetchCurrentDayWeatherLocationFromAPI(for location: WeatherLocationLocation

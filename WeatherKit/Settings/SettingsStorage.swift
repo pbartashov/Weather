@@ -15,6 +15,7 @@ struct SettingsStorage {
         static let speedUnits = "com.weather.settings.speedUnits"
         static let timeFormat = "com.weather.settings.timeFormat"
         static let notificationsEnabled = "com.weather.settings.notificationsEnabled"
+        static let isFirstLaunch = "com.weather.settings.hasBeenLaunchedBefore"
 //        static let keyTemperature = "com.weather.settings.temperature"
 //        static let keySpeed = "com.weather.settings.speed"
 //        static let keyTimeFormat = "com.weather.settings.timeFormat"
@@ -78,7 +79,19 @@ struct SettingsStorage {
     }
 
 
+
     // MARK: - Metods
+
+    //https://stackoverflow.com/questions/27208103/detect-first-launch-of-ios-app
+    func isFirstLaunch() -> Bool {
+        let isFirstLaunch = !userDefaults.bool(forKey: Key.isFirstLaunch)
+        if (isFirstLaunch) {
+            userDefaults.set(true, forKey: Key.isFirstLaunch)
+        }
+        return isFirstLaunch
+    }
+
+
 
 //    func save(_ temperature: Settings.Temperature) {
 //        userDefaults.set(temperature.rawValue,
@@ -192,25 +205,23 @@ struct SettingsStorage {
 
 
 extension UserDefaults {
-    @objc var temperatureUnit: NSNumber? {
+    @objc var temperatureUnit: NSNumber {
         let integer = integer(forKey: SettingsStorage.Key.temperatureUnits)
         return NSNumber(value: integer)
     }
 
-    @objc var speedUnit: NSNumber? {
+    @objc var speedUnit: NSNumber {
         let integer = integer(forKey: SettingsStorage.Key.speedUnits)
         return NSNumber(value: integer)
     }
 
-    @objc var timeFormat: NSNumber? {
+    @objc var timeFormat: NSNumber {
         let integer = integer(forKey: SettingsStorage.Key.timeFormat)
         return NSNumber(value: integer)
     }
 
-    @objc var notificationsEnabled: NSNumber? {
+    @objc var notificationsEnabled: NSNumber {
         let integer = integer(forKey: SettingsStorage.Key.notificationsEnabled)
         return NSNumber(value: integer)
     }
-
-
 }

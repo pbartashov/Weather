@@ -9,13 +9,21 @@ import Foundation
 
 
 
-public struct LocationAddress {
-    let city: String
-    let country: String
+public struct LocationAddress: Hashable {
+    public let city: String
+    public let country: String
+    public let latitude: Double
+    public let longitude: Double
 
-    public init(city: String, country: String) {
+    public init(city: String,
+                country: String,
+                latitude: Double,
+                longitude : Double
+    ) {
         self.city = city
         self.country = country
+        self.latitude = latitude
+        self.longitude = longitude
     }
 }
 
@@ -74,12 +82,39 @@ public enum Geocoder {
         let metaDataProperty: GeoObjectMetaDataProperty
         //    let name: String
         //    let geoObjectDescription: Description
-        //    let point: Point
+        let point: Point
 
         enum CodingKeys: String, CodingKey {
             case metaDataProperty//, name
             //        case geoObjectDescription = "description"
-            //        case point = "Point"
+            case point = "Point"
+        }
+    }
+
+    // MARK: - Point
+    struct Point: Codable {
+//        let pos: String
+        let latitude: Double
+        let longitude: Double
+
+        enum CodingKeys: String, CodingKey {
+            case pos
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            let pos = try container.decodeIfPresent(String.self, forKey: .pos) ?? ""
+            let values = pos.split(separator: " ")
+
+            longitude = Double(values.first ?? "0") ?? 0.0
+            latitude = Double(values.last ?? "0") ?? 0.0
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            let pos = "\(longitude)\(latitude)"
+            try container.encode(pos, forKey: .pos)
         }
     }
 
@@ -123,10 +158,28 @@ public enum Geocoder {
         let name: String
     }
 
-    enum Kind: String, Codable {
-        case area = "area"
+    enum Kind: String, Codable, Equatable {
+        case unknown
+//        case area = "area"
         case country = "country"
         case locality = "locality"
         case province = "province"
+
+        init?(rawValue: String) {
+            switch rawValue {
+                case Kind.country.rawValue:
+                    self = .country
+
+                case Kind.locality.rawValue:
+                    self = .locality
+
+                case Kind.province.rawValue:
+                    self = .province
+
+                default:
+                    self = .unknown
+
+            }
+        }
     }
 }

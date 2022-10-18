@@ -34,7 +34,7 @@ public protocol WeatherRepositoryProtocol {
 //    var currentWeatherPublisher: AnyPublisher<Weather, Never> { get }
 
     var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> { get }
-//    var weatherPackPublisher: AnyPublisher<WeatherPack, Never> { get }
+    var weatherPackPublisher: AnyPublisher<WeatherPack, Never> { get }
     //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> { get }
     //    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?)
 
@@ -43,6 +43,10 @@ public protocol WeatherRepositoryProtocol {
 
     func startFetchingWeather(for location: WeatherLocation, dateInterval: DateInterval) async throws
     //    func fetchCurrentDayWeather(location: WeatherLocation) async throws -> WeatherContainer
+
+    func fetchCurrentDayWeatherFromAPI(for location: WeatherLocation) async throws
+    func fetchForecastWeatherFromAPI(for location: WeatherLocation,
+                                            dateInterval: DateInterval) async throws
 }
 
 /// Weather Repository class.
@@ -71,10 +75,10 @@ public final class WeatherRepository {
             .eraseToAnyPublisher()
     }
 
-//    private let weatherContainerSubject = PassthroughSubject<WeatherPack, Never>()
-//    public var weatherPackPublisher: AnyPublisher<WeatherPack, Never> {
-//        weatherContainerSubject.eraseToAnyPublisher()
-//    }
+    private let weatherContainerSubject = PassthroughSubject<WeatherPack, Never>()
+    public var weatherPackPublisher: AnyPublisher<WeatherPack, Never> {
+        weatherContainerSubject.eraseToAnyPublisher()
+    }
 
 //    var weathersPublisher: AnyPublisher<[WeatherType: [Weather]], Never> {
 //        repository.fetchedResultsPublisher
@@ -274,14 +278,14 @@ extension WeatherRepository: WeatherRepositoryProtocol {
         try await fetchForecastWeatherFromAPI(for: location, dateInterval: dateInterval)
     }
 
-    private func fetchCurrentDayWeatherFromAPI(for location: WeatherLocation
+    public func fetchCurrentDayWeatherFromAPI(for location: WeatherLocation
                                      //        latitude: Double,
                                      //                                 longitude: Double
     ) async throws {
         let weatherPack: WeatherPack = try await requestManager.perform(
             WeatherRequest.getCurrentDayWeatherFor(location: location)
         )
-//        weatherContainerSubject.send(weatherPack)
+        weatherContainerSubject.send(weatherPack)
 
         guard let todayWeather = weatherPack.days.first else { return }
 //        print(todayWeather)
@@ -314,7 +318,7 @@ extension WeatherRepository: WeatherRepositoryProtocol {
         //            }
     }
 
-    private func fetchForecastWeatherFromAPI(for location: WeatherLocation,
+    public func fetchForecastWeatherFromAPI(for location: WeatherLocation,
                                              dateInterval: DateInterval
     ) async throws {
 
@@ -336,7 +340,7 @@ extension WeatherRepository: WeatherRepositoryProtocol {
             let newEntity = try await repository.create()
             weatherEntities.append(newEntity)
         }
-
+        print(Thread.current)
         for (entity, weather) in zip(weatherEntities, weathers) {
             entity.copyDomainModel(model: weather)
         }

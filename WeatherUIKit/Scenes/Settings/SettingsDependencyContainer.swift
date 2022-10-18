@@ -6,7 +6,6 @@
 //
 
 public final class SettingsDependencyContainer {
-
     public func makeSettingsViewController() -> SettingsViewController {
         SettingsViewController()
     }

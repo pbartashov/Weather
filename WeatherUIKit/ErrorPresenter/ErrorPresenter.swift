@@ -34,10 +34,17 @@ public final class ErrorPresenter {
         }
 
         DispatchQueue.main.async { [weak self] in
-            if self?.isErrorPresenting == true {
-                self?.errorQueue.append(error)
+            guard let self = self else { return }
+            if self.isErrorPresenting == true {
+                self.errorQueue.append(error)
             } else {
-                self?.isErrorPresenting = true
+
+                print(error)
+
+
+
+
+                self.isErrorPresenting = true
 
                 let alert = UIAlertController(title: error.localizedDescription,
                                               message: nil,
@@ -54,10 +61,22 @@ public final class ErrorPresenter {
                 }
                 alert.addAction(cancelAction)
 
-                self?.presenter?.present(alert, animated: true)
+                if let presented = self.presenter?.presentedViewController {
+                    if presented.isBeingPresented {
+                        presented.present(alert, animated: true)
+                    } else {
+                        self.isErrorPresenting = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            self.show(error: error)
+                        }
+                    }
+                    return
+                }
+
+                self.presenter?.present(alert, animated: true)
 
 
-                print(error)
+
             }
         }
     }

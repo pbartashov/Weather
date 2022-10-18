@@ -11,8 +11,9 @@ import Combine
 public final class WeatherDependencyContainer {
 
     // MARK: - Properties
-    let contextProvider: CoreDataContextProvider
-    let unitsFormatterContainer = UnitsFormatterContainer()
+    private let contextProvider: CoreDataContextProvider
+    private let unitsFormatterContainer: UnitsFormatterContainer
+    private let removePageResponder: RemovePageResponder
 
 
     //    // From parent container
@@ -33,8 +34,13 @@ public final class WeatherDependencyContainer {
 
     // MARK: - LifeCicle
 
-    public init(contextProvider: CoreDataContextProvider) {
+    public init(contextProvider: CoreDataContextProvider,
+                removePageResponder: RemovePageResponder,
+                unitsFormatterContainer: UnitsFormatterContainer = UnitsFormatterContainer()
+    ) {
         self.contextProvider = contextProvider
+        self.removePageResponder = removePageResponder
+        self.unitsFormatterContainer = unitsFormatterContainer
         //        func makeWeartherViewModel() -> WeatherViewModel {
         //            WeatherViewModel()
         //        }
@@ -68,7 +74,8 @@ public final class WeatherDependencyContainer {
         let repository = WeatherRepository(context: contextProvider.backgroundContext)
         return WeathersViewModel(location: location,
                                  weatherRepository: repository,
-                                 unitsFormatterContainer: unitsFormatterContainer)
+                                 unitsFormatterContainer: unitsFormatterContainer,
+                                 removePageResponder: removePageResponder)
     }
 
     func makeHourlyWeatherViewController(for city: String,

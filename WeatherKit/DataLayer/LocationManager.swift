@@ -5,6 +5,7 @@
 //
 
 //https://github.com/raywenderlich/rwi-materials/blob/editions/1.0/03-data-layer-networking/projects/final/PetSave/Core/utils/LocationManager.swift
+//https://www.hackingwithswift.com/quick-start/concurrency/how-to-store-continuations-to-be-resumed-later
 import CoreLocation
 import Combine
 
@@ -22,6 +23,7 @@ public final class LocationManager: NSObject {
 
     private let cllLocationManager: CLLocationManager
     private let requestManager: RequestManagerProtocol
+    private var locationContinuation: CheckedContinuation<CLLocationCoordinate2D?, Error>?
 
     // MARK: - LifeCicle
 
@@ -36,7 +38,8 @@ public final class LocationManager: NSObject {
         cllLocationManager.delegate = self
         cllLocationManager.desiredAccuracy = kCLLocationAccuracyReduced
         self.authorizationStatus = cllLocationManager.authorizationStatus
-        cllLocationManager.startUpdatingLocation()
+//        cllLocationManager.startUpdatingLocation()
+//        cllLocationManager.requestLocation()
     }
 
     // MARK: - Metods
@@ -49,6 +52,37 @@ public final class LocationManager: NSObject {
         cllLocationManager.requestWhenInUseAuthorization()
     }
 
+    public func checkAuthorization(
+        onSuccess: (() -> Void)? = nil,
+        onDenied: (() -> Void)? = nil,
+        onRestricted: (() -> Void)? = nil
+    ) {
+        switch authorizationStatus {
+            case .notDetermined:
+                cllLocationManager.requestWhenInUseAuthorization()
+
+            case .authorizedAlways, .authorizedWhenInUse:
+                onSuccess?()
+
+            case .denied:
+                onDenied?()
+
+            case .restricted:
+                onRestricted?()
+
+            @unknown default:
+                break
+        }
+    }
+
+    @discardableResult
+    public func requestLocation() async throws -> CLLocationCoordinate2D? {
+        try await withCheckedThrowingContinuation { continuation in
+            locationContinuation = continuation
+            cllLocationManager.requestLocation()
+        }
+    }
+
     public func startUpdatingLocation() {
         cllLocationManager.startUpdatingLocation()
     }
@@ -56,7 +90,7 @@ public final class LocationManager: NSObject {
 
 // MARK: - Location status
 extension LocationManager {
-    public var locationIsEnabled: Bool {
+    public var isLocationEnabled: Bool {
         authorizationStatus != .denied &&
         authorizationStatus != .notDetermined &&
         authorizationStatus != .restricted
@@ -69,45 +103,120 @@ extension LocationManager: CLLocationManagerDelegate {
         updateAuthorizationStatus()
     }
 
-    public func locationManager(
-        _ manager: CLLocationManager,
-        didUpdateLocations locations: [CLLocation]
-    ) {
-        guard let location = locations.first else { return }
-        lastSeenLocation = location
+//    public func locationManager(
+//        _ manager: CLLocationManager,
+//        didUpdateLocations locations: [CLLocation]
+//    ) {
+//        guard let location = locations.first else { return }
+//        lastSeenLocation = location
+//    }
+//
+//    public func locationManager(
+//        _ manager: CLLocationManager,
+//        didFailWithError error: Error
+//    ) {
+//        errorMessagesSubject.send(error)
+//    }
+
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+//        guard let location = locations.first else { return }
+        lastSeenLocation = locations.first
+        locationContinuation?.resume(returning: locations.first?.coordinate)
+        locationContinuation = nil
     }
 
-    public func locationManager(
-        _ manager: CLLocationManager,
-        didFailWithError error: Error
-    ) {
-        errorMessagesSubject.send(error)
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if locationContinuation != nil {
+            locationContinuation?.resume(throwing: error)
+        } else {
+            errorMessagesSubject.send(error)
+        }
     }
 }
 
 // MARK: - Geocder methods
 extension LocationManager {
-    func getAddressesForCurrentLocation() async throws -> [LocationAddress] {
+    func getAddressesForCurrentLocality() async throws -> [LocationAddress] {
+//        print(lastSeenLocation)
         guard let coordinate = lastSeenLocation?.coordinate else {
             return []
         }
 
-        return try await getAddressFor(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        return try await getAddressesFor(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 
-    func getAddressFor(latitude: Double, longitude: Double) async throws -> [LocationAddress] {
+    func getCurrentAddress() async throws -> LocationAddress? {
+        try await requestLocation()
+        let addresses = try await getAddressesForCurrentLocality()
+
+        return addresses.first
+    }
+
+    func getAddressesFor(latitude: Double, longitude: Double) async throws -> [LocationAddress] {
         let response: Geocoder.GeocoderAPIResponse = try await requestManager.perform(
             GeocoderRequest.getAddressFor(latitude: latitude, longitude: longitude)
         )
-    
-        return []
+
+        return response.response
+            .geoObjectCollection
+            .featureMember
+            .compactMap { $0.localityAddress }
     }
 
-    func getCoordinatesFor(locality: String) async throws -> [LocationAddress] {
+    func getAddressesFor(locality: String) async throws -> [LocationAddress] {
         let response: Geocoder.GeocoderAPIResponse = try await requestManager.perform(
             GeocoderRequest.getCoordinatesFor(locality: locality)
         )
 
-        return []
+        return response.response
+            .geoObjectCollection
+            .featureMember
+            .compactMap { $0.localityAddress }
+    }
+
+    func getTimeZoneFor(latitude: Double, longitude: Double) async throws -> String {
+        let response: WeatherPack = try await requestManager.perform(
+            WeatherRequest.getCurrentWeatherFor(latitude: latitude,
+                                                longitude: longitude)
+        )
+        return response.timezone
+    }
+
+//    func getCoordinatesFor(locality: String) async throws -> LocationAddress? {
+//        let response: Geocoder.GeocoderAPIResponse = try await requestManager.perform(
+//            GeocoderRequest.getCoordinatesFor(locality: locality)
+//        )
+//
+//        return nil
+//    }
+}
+
+fileprivate extension Geocoder.FeatureMember {
+    var localityAddress: LocationAddress? {
+        let components = geoObject.metaDataProperty.geocoderMetaData.address.components
+        let point = geoObject.point
+
+        guard
+            let country = components.first(where: { $0.kind == .country})
+        else {
+            return nil
+        }
+
+        let city: Geocoder.Component
+
+        if let locality = components.last(where: { $0.kind == .locality }) {
+            city = locality
+        } else if let locality = components.last {
+            city = locality
+        } else {
+            return nil
+        }
+
+        
+
+        return LocationAddress(city: city.name,
+                               country: country.name,
+                               latitude: point.latitude,
+                               longitude: point.longitude)
     }
 }

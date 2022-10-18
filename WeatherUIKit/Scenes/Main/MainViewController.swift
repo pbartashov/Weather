@@ -9,9 +9,16 @@ import UIKit
 import WeatherKit
 import Combine
 
+public protocol LocationViewControllerFactoryProtocol {
+    func makeDeniedViewController() -> UIViewController
+    func makeRestrictedViewController() -> UIViewController
+}
+
 public final class MainViewController: UIViewController {
 
     // MARK: - Properties
+
+    private var activity: UIActivityIndicatorView?
 
     private lazy var pageController: UIPageViewController =  {
         let pageController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
@@ -44,6 +51,7 @@ public final class MainViewController: UIViewController {
     let makeAddLocationViewController: () -> AddLocationViewController
     let makeOnboardingViewController: () -> OnboardingViewController
     let makeSearchLocationViewController: () -> SearchLocationViewController
+    let locationsViewControllerFactory: LocationViewControllerFactoryProtocol
 
 //    private var locations = [LocationWeather(index: 0, cityName: "London"),
 //                        LocationWeather(index: 1, cityName: "Vladivostok"),
@@ -80,7 +88,8 @@ public final class MainViewController: UIViewController {
         settingsViewControllerFactory: @escaping ()-> SettingsViewController,
         addLocationViewControllerFactory: @escaping ()-> AddLocationViewController,
         onboardingViewControllerFactory: @escaping () -> OnboardingViewController,
-        searchLocationViewControllerFactory: @escaping () -> SearchLocationViewController
+        searchLocationViewControllerFactory: @escaping () -> SearchLocationViewController,
+        locationsViewControllerFactory: LocationViewControllerFactoryProtocol
     ) {
         self.viewModel = viewModel
         self.makeWeatherViewController = weatherViewControllerFactory
@@ -88,6 +97,7 @@ public final class MainViewController: UIViewController {
         self.makeAddLocationViewController = addLocationViewControllerFactory
         self.makeOnboardingViewController = onboardingViewControllerFactory
         self.makeSearchLocationViewController = searchLocationViewControllerFactory
+        self.locationsViewControllerFactory = locationsViewControllerFactory
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -115,11 +125,11 @@ public final class MainViewController: UIViewController {
 //        setViewControllers([WeatherViewController(locationWeather: locations[0])],
 //                                                      direction: .forward, animated: true)
 
-
-        let viewController = makeAddLocationViewController()
-        pageController.setViewControllers([viewController],
-                                          direction: .reverse,
-                                          animated: true)
+        moveToAddLocationViewController()
+//        let viewController = makeAddLocationViewController()
+//        pageController.setViewControllers([viewController],
+//                                          direction: .reverse,
+//                                          animated: true)
 
         //        if !viewModel.locations.isEmpty {
         //            let viewConrtoller = makeWeatherViewController(0)
@@ -163,6 +173,8 @@ public final class MainViewController: UIViewController {
 
         setupNavigationBar()
         setupBindings()
+
+        fetchLocations()
     }
 
 
@@ -237,45 +249,93 @@ public final class MainViewController: UIViewController {
         if currentIndex < viewModel.locations.count {
             title = viewModel.locations[currentIndex].cityName
         } else {
-            title =  "Добавьте новый город"
+            title = "Добавьте новый город"
         }
     }
 
     private func setupBindings() {
-        viewModel.$locations
-            .map { $0.count + 1 }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.numberOfPages, on: pageControl)
-            .store(in: &subscriptions)
-
-        viewModel.$locations
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] locations in
-                guard let self = self, !locations.isEmpty else { return }
-                let viewController = self.makeWeatherViewController(0)
-                self.pageController.setViewControllers([viewController],
-                                                       direction: .reverse,
-                                                  animated: true)
-                self.currentIndex = 0
-            }
-            .store(in: &subscriptions)
-
-        viewModel.$mainSceneState
-            .sink { [weak self] state in
-                self?.showWeather()
-
-                switch state {
-                    case .showWeather:
-                        break
-                    case .showOnboarding:
-                        self?.showOnboarding()
-
-                    case .showSearchLocation:
-                        self?.showSearchLocation()
+        func bindViewModelToErrors() {
+            viewModel.errorMessages
+                .receive(on: DispatchQueue.main)
+                .sink { error in
+                    ErrorPresenter.shared.show(error: error)
                 }
-            }
+                .store(in: &subscriptions)
+        }
+
+        func bindViewModelLocations() {
+            viewModel.$locations
+                .map { $0.count + 1 }
+                .receive(on: DispatchQueue.main)
+                .assign(to: \.numberOfPages, on: pageControl)
+                .store(in: &subscriptions)
+
+            viewModel.$locations
+                .receive(on: DispatchQueue.main)
+                .debounce(for: .seconds(0.3), scheduler: RunLoop.current)
+                .sink { [weak self] locations in
+                    guard let self = self else { return }
+                    locations.isEmpty ?
+                    self.moveToAddLocationViewController() :
+                    self.moveToWeatherViewController(at: 0)
+
+                }
             .store(in: &subscriptions)
+        }
+
+        func bindViewModelState() {
+            viewModel.$mainSceneState
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    self?.showWeather()
+
+                    switch state {
+                        case .showWeather:
+                            break
+                        case .showOnboarding:
+                            self?.showOnboarding()
+
+                        case .showSearchLocation:
+                            self?.showSearchLocation()
+
+                        case .showLocationDenied:
+                            self?.showLocationDenied()
+
+                        case .showLocationRestricted:
+                            self?.showLocationRestricted()
+
+                        case .showWeatherAt(let index):
+                            self?.moveToWeatherViewController(at: index)
+
+                        case .showWaitingLocation:
+                            self?.showWaitingLocation()
+                    }
+                }
+                .store(in: &subscriptions)
+        }
+
+        bindViewModelToErrors()
+        bindViewModelLocations()
+        bindViewModelState()
     }
+
+    private func moveToWeatherViewController(at index: Int) {
+        let viewController = makeWeatherViewController(index)
+        pageController.setViewControllers([viewController],
+                                               direction: .reverse,
+                                               animated: true)
+        currentIndex = index
+    }
+
+    private func moveToAddLocationViewController() {
+        let viewController = makeAddLocationViewController()
+        pageController.setViewControllers([viewController],
+                                          direction: .reverse,
+                                          animated: true)
+        currentIndex = 0
+    }
+
+    
 
     private func showWeather() {
         if presentedViewController is OnboardingViewController ||
@@ -283,6 +343,11 @@ public final class MainViewController: UIViewController {
             #warning("alert is self dissmissed")
 
             dismiss(animated: true)
+        }
+
+        if let activity = activity {
+            activity.removeFromSuperview()
+            self.activity = nil
         }
     }
 
@@ -293,27 +358,8 @@ public final class MainViewController: UIViewController {
     }
 
     private func showSearchLocation() {
-//        let ac = UIAlertController(title: "Enter answer", message: nil, preferredStyle: .alert)
-//        ac.addTextField()
-//
-//        ac.aut
-//
-//        let submitAction = UIAlertAction(title: "Submit", style: .default) { [unowned ac] _ in
-//            let answer = ac.textFields![0]
-//            // do something interesting with "answer" here
-//        }
-//
-//        ac.addAction(submitAction)
-//
-//        present(ac, animated: true)
-//
-//return
-
-
         let search = makeSearchLocationViewController()
-//        search.modalPresentationStyle = .currentContext
         present(search, animated: true)
-//        navigationController?.pushViewController(search, animated: true)
     }
 
     private func showSettings() {
@@ -323,29 +369,74 @@ public final class MainViewController: UIViewController {
         //        present(settings, animated: true)
 
     }
+
+    private func showLocationDenied() {
+        let denied = locationsViewControllerFactory.makeDeniedViewController()
+//        onboarding.modalPresentationStyle = .fullScreen
+        present(denied, animated: true)
+    }
+
+    private func showLocationRestricted() {
+        let restricted = locationsViewControllerFactory.makeRestrictedViewController()
+//        onboarding.modalPresentationStyle = .fullScreen
+        present(restricted, animated: true)
+    }
+
+    private func showWaitingLocation() {
+        let activity = UIActivityIndicatorView(style: .large)
+        activity.backgroundColor = .white
+        activity.startAnimating()
+        view.addSubview(activity)
+
+        activity.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+
+//        view.bringSubviewToFront(activity)
+
+        self.activity = activity
+    }
+
+    private func fetchLocations() {
+        Task {
+            await viewModel.fetchLocations()
+        }
+    }
+
+
+
 }
 
 
 
 
 extension MainViewController: UIPageViewControllerDelegate {
-    public func pageViewController(_ pageViewController: UIPageViewController,
-                            willTransitionTo pendingViewControllers: [UIViewController]) {
+    public func pageViewController(
+        _ pageViewController: UIPageViewController,
+        willTransitionTo pendingViewControllers: [UIViewController]
+    ) {
 //        guard let nextViewController = pendingViewControllers.first as? WeathersViewController else { return }
 //        moveToIndex = nextViewController.locationID
         let firstPending = pendingViewControllers.first
         if let nextViewController = firstPending as? WeathersViewController {
-            moveToIndex = nextViewController.locationID
+            if let index = viewModel.locations.firstIndex(where: {
+                $0.index == nextViewController.locationID
+            }) {
+                moveToIndex = index
+            }
+//            moveToIndex = nextViewController.locationID
         } else if firstPending is AddLocationViewController {
             moveToIndex = currentIndex + 1
         }
     }
 
 
-    public func pageViewController(_ pageViewController: UIPageViewController,
-                            didFinishAnimating finished: Bool,
-                            previousViewControllers: [UIViewController],
-                            transitionCompleted completed: Bool) {
+    public func pageViewController(
+        _ pageViewController: UIPageViewController,
+        didFinishAnimating finished: Bool,
+        previousViewControllers: [UIViewController],
+        transitionCompleted completed: Bool
+    ) {
         if completed {
             currentIndex = moveToIndex
         }
@@ -406,6 +497,8 @@ extension MainViewController: UIPageViewControllerDataSource {
 //        }
 //        let addLocationIndex =
         let maxLocationIndex = viewModel.locations.count - 1
+
+        guard maxLocationIndex >= 0 else { return nil }
 
         switch currentIndex {
             case 0..<maxLocationIndex:

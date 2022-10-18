@@ -7,10 +7,12 @@
 
 public enum MainSceneState {
     case showWeather
+    case showWeatherAt(index: Int)
     case showOnboarding
-    case showSearchLocation(named: String?)
+    case showLocationDenied
+    case showLocationRestricted
+    case showSearchLocation//(named: String?)
+    case showWaitingLocation
 }
 
-extension MainSceneState: Equatable {
-
-}
+extension MainSceneState: Equatable { }
