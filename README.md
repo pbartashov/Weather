@@ -11,11 +11,19 @@
 ## Использумый стэк
 
 MVVM
+
 Combine
+
 UIKit
+
 SnapKit
+
 Core Data
+
 asyc/await concurrency
+
 URLSession
+
 CLLocationManager
+
 UICollectionViewDiffableDataSource
