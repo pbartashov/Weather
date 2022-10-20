@@ -66,7 +66,7 @@ final class LoadingCell: UICollectionViewCell {
 
         label.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(activity.snp.bottom).offset(16)
+            make.top.equalTo(activity.snp.bottom).offset(ConstantsUI.leadingMargin)
         }
     }
 }

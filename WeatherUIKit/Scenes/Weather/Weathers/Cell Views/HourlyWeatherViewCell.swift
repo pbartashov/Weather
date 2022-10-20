@@ -76,7 +76,7 @@ final class HourlyWeatherViewCell: UICollectionViewCell {
 
     private func setupLayouts() {
         stackView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(15)
+            make.top.equalToSuperview().offset(ConstantsUI.topMargin)
             make.leading.trailing.equalToSuperview()
             make.bottom.equalToSuperview().offset(-8)
         }

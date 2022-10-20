@@ -121,13 +121,13 @@ final class HourlyWeatherDetailedViewCell: UICollectionViewCell {
 
     private func setupLayouts() {
         dateLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(15)
-            make.leading.equalToSuperview().offset(16)
+            make.top.equalToSuperview().offset(ConstantsUI.topMargin)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
         }
 
         timeLabel.snp.makeConstraints { make in
             make.top.equalTo(dateLabel.snp.bottom).offset(8)
-            make.leading.equalToSuperview().offset(16)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
         }
 
         temperatureLabel.snp.makeConstraints { make in
@@ -138,13 +138,13 @@ final class HourlyWeatherDetailedViewCell: UICollectionViewCell {
         stackView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(45)
             make.leading.equalToSuperview().offset(90)
-            make.trailing.equalToSuperview().offset(-15)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
             make.bottom.equalToSuperview().offset(-8)
         }
 
         lineView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-16)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
             make.height.equalTo(0.5)
             make.bottom.equalToSuperview()
         }

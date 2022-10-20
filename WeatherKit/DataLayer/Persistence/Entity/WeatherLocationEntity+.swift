@@ -22,5 +22,5 @@ extension WeatherLocationEntity: DomainModel {
         index = Int16(model.index)
         cityName = model.cityName
         timeZone = model.timeZone
-     }
+    }
 }

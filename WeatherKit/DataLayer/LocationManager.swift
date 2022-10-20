@@ -38,8 +38,6 @@ public final class LocationManager: NSObject {
         cllLocationManager.delegate = self
         cllLocationManager.desiredAccuracy = kCLLocationAccuracyReduced
         self.authorizationStatus = cllLocationManager.authorizationStatus
-//        cllLocationManager.startUpdatingLocation()
-//        cllLocationManager.requestLocation()
     }
 
     // MARK: - Metods
@@ -103,23 +101,7 @@ extension LocationManager: CLLocationManagerDelegate {
         updateAuthorizationStatus()
     }
 
-//    public func locationManager(
-//        _ manager: CLLocationManager,
-//        didUpdateLocations locations: [CLLocation]
-//    ) {
-//        guard let location = locations.first else { return }
-//        lastSeenLocation = location
-//    }
-//
-//    public func locationManager(
-//        _ manager: CLLocationManager,
-//        didFailWithError error: Error
-//    ) {
-//        errorMessagesSubject.send(error)
-//    }
-
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//        guard let location = locations.first else { return }
         lastSeenLocation = locations.first
         locationContinuation?.resume(returning: locations.first?.coordinate)
         locationContinuation = nil
@@ -137,7 +119,6 @@ extension LocationManager: CLLocationManagerDelegate {
 // MARK: - Geocder methods
 extension LocationManager {
     func getAddressesForCurrentLocality() async throws -> [LocationAddress] {
-//        print(lastSeenLocation)
         guard let coordinate = lastSeenLocation?.coordinate else {
             return []
         }
@@ -181,14 +162,6 @@ extension LocationManager {
         )
         return response.timezone
     }
-
-//    func getCoordinatesFor(locality: String) async throws -> LocationAddress? {
-//        let response: Geocoder.GeocoderAPIResponse = try await requestManager.perform(
-//            GeocoderRequest.getCoordinatesFor(locality: locality)
-//        )
-//
-//        return nil
-//    }
 }
 
 fileprivate extension Geocoder.FeatureMember {
@@ -211,8 +184,6 @@ fileprivate extension Geocoder.FeatureMember {
         } else {
             return nil
         }
-
-        
 
         return LocationAddress(city: city.name,
                                country: country.name,

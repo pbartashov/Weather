@@ -15,19 +15,10 @@ public protocol RequestProtocol {
     var headers: [String: String] { get }
     var params: [String: Any] { get }
     var urlParams: [String: String?] { get }
-    // var addAuthorizationToken: Bool { get }
 }
 
 // MARK: - Default RequestProtocol
 extension RequestProtocol {
-//    var host: String {
-//        WeatherAPIConstants.host
-//    }
-
-//    var addAuthorizationToken: Bool {
-//        true
-//    }
-
     var params: [String: Any] {
         [:]
     }
@@ -46,12 +37,7 @@ extension RequestProtocol {
         components.host = host
         components.path = path
 
-
-        
-
         let queryItems = urlParams.map { URLQueryItem(name: $0, value: $1) }
-//        queryItems.append(URLQueryItem(name: "key", value: APIConstants.clientId))
-//        queryItems.append(URLQueryItem(name: "lang", value: APIConstants.language))
         components.queryItems = queryItems
 
         guard let url = components.url else { throw  NetworkError.invalidURL }
@@ -62,10 +48,6 @@ extension RequestProtocol {
         if !headers.isEmpty {
             urlRequest.allHTTPHeaderFields = headers
         }
-
-        //    if addAuthorizationToken {
-        //      urlRequest.setValue(authToken, forHTTPHeaderField: "Authorization")
-        //    }
 
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
 

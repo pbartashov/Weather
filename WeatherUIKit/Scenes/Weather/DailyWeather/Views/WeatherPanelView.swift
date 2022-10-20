@@ -236,7 +236,7 @@ final class WeatherPanelView: UIView {
         }
 
         iconAndTemperatureStackView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(15)
+            make.top.equalToSuperview().offset(ConstantsUI.topMargin)
             make.centerX.equalToSuperview()
         }
 
@@ -247,8 +247,8 @@ final class WeatherPanelView: UIView {
 
         rowStack.snp.makeConstraints { make in
             make.top.equalTo(conditionsLabel.snp.bottom).offset(25)
-            make.leading.equalToSuperview()//.offset(15)
-            make.trailing.equalToSuperview()//.offset(-15)
+            make.leading.equalToSuperview()
+            make.trailing.equalToSuperview()
             make.bottom.equalToSuperview().offset(-12)
         }
     }

@@ -7,7 +7,7 @@
 
 public enum WeatherType: Int {
     case none = 0
-    case current// = 0
+    case current
     case hourly
     case daily
 }

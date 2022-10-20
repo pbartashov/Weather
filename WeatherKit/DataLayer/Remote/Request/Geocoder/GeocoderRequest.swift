@@ -18,17 +18,12 @@ enum GeocoderRequest: RequestProtocol {
     }
 
     var path: String {
-        //        let basePath =
         "/1.x"
-        //        switch self {
-        //            case let .getAirQualityForecastFor:
-        //                return "\(basePath)/\(location.latitude),\(location.longitude)/today"
-        //
-        //        }
     }
 
     var urlParams: [String: String?] {
-        var urlParams = ["apikey": String(data: LocationAPIConstants.clientId, encoding: .utf8),
+        let apikey = String(data: LocationAPIConstants.clientId, encoding: .utf8)
+        var urlParams = ["apikey": apikey,
                          "results": LocationAPIConstants.resultsCount,
                          "format": "json",
                          "kind": "locality",
@@ -48,4 +43,3 @@ enum GeocoderRequest: RequestProtocol {
         .get
     }
 }
-

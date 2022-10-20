@@ -25,6 +25,7 @@ final class RemovePageView: UICollectionReusableView {
         let button = PublishedButton(publishedValue: Button.remove)
         button.setTitle("Удалить вкладку", for: .normal)
         button.setTitleColor(.red, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16)
 
         return button
     }()

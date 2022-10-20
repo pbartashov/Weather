@@ -8,9 +8,7 @@
 import Foundation
 
 public protocol APIManagerProtocol {
-    //  func perform(_ request: RequestProtocol, authToken: String) async throws -> Data
     func perform(_ request: RequestProtocol) async throws -> Data
-    //  func requestToken() async throws -> Data
 }
 
 public final class APIManager: APIManagerProtocol {
@@ -28,8 +26,4 @@ public final class APIManager: APIManagerProtocol {
         }
         return data
     }
-
-    //  func requestToken() async throws -> Data {
-    //    try await perform(AuthTokenRequest.auth)
-    //  }
 }

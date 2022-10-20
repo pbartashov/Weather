@@ -214,8 +214,8 @@ public final class WeathersViewController: UICollectionViewController {
                     let section = NSCollectionLayoutSection(group: group)
                     section.orthogonalScrollingBehavior = .continuous
                     section.boundarySupplementaryItems = [hourlyWeatherHeaderItem]
-                    section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16,
-                                                                    bottom: 32, trailing: 16)
+                    section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: ConstantsUI.leadingMargin,
+                                                                    bottom: 32, trailing: ConstantsUI.trailingMargin)
                     return section
                     
                 case .dailyWeatherSection:
@@ -232,8 +232,8 @@ public final class WeathersViewController: UICollectionViewController {
                                                                  subitems: [item])
                     
                     let section = NSCollectionLayoutSection(group: group)
-                    section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16,
-                                                                    bottom: 6, trailing: 16)
+                    section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: ConstantsUI.leadingMargin,
+                                                                    bottom: 6, trailing: ConstantsUI.trailingMargin)
                     section.boundarySupplementaryItems = [dailyWeatherHeaderItem, removePageFooterItem]
                     
                     return section

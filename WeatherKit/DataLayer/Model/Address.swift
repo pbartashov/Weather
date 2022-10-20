@@ -7,8 +7,6 @@
 
 import Foundation
 
-
-
 public struct LocationAddress: Hashable {
     public let city: String
     public let country: String
@@ -28,7 +26,6 @@ public struct LocationAddress: Hashable {
 }
 
 public enum Geocoder {
-
     // MARK: - GeocoderAPIResponse
     public struct GeocoderAPIResponse: Codable {
         let response: GeocoderResponse
@@ -36,18 +33,6 @@ public enum Geocoder {
             case response
         }
     }
-
-    //extension GeocoderResponse: Decodable {
-    //    public init(from decoder: Decoder) throws {
-    //        let container = try decoder.container(keyedBy: CodingKeys.self)
-    //
-    //        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude) ?? 0.0
-    //        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude) ?? 0.0
-    //
-    //        timezone = try container.decodeIfPresent(String.self, forKey: .timezone) ?? ""
-    //    }
-    //}
-
 
     // MARK: - Response
     struct GeocoderResponse: Codable {
@@ -60,7 +45,6 @@ public enum Geocoder {
 
     // MARK: - GeoObjectCollection
     struct GeoObjectCollection: Codable {
-        //    let metaDataProperty: GeoObjectCollectionMetaDataProperty
         let featureMember: [FeatureMember]
     }
 
@@ -76,20 +60,16 @@ public enum Geocoder {
     // MARK: - GeoObject
     struct GeoObject: Codable {
         let metaDataProperty: GeoObjectMetaDataProperty
-        //    let name: String
-        //    let geoObjectDescription: Description
         let point: Point
 
         enum CodingKeys: String, CodingKey {
             case metaDataProperty//, name
-            //        case geoObjectDescription = "description"
             case point = "Point"
         }
     }
 
     // MARK: - Point
     struct Point: Codable {
-//        let pos: String
         let latitude: Double
         let longitude: Double
 
@@ -125,25 +105,18 @@ public enum Geocoder {
 
     // MARK: - GeocoderMetaData
     struct GeocoderMetaData: Codable {
-        //    let text: String
-        //    let kind: Kind
         let address: Address
 
         enum CodingKeys: String, CodingKey {
-            //        case text, kind
             case address = "Address"
         }
     }
 
     // MARK: - Address
     struct Address: Codable {
-        //    let countryCode: CountryCode
-        //    let formatted: String
         let components: [Component]
 
         enum CodingKeys: String, CodingKey {
-            //        case countryCode = "country_code"
-            //        case formatted
             case components = "Components"
         }
     }
@@ -156,7 +129,6 @@ public enum Geocoder {
 
     enum Kind: String, Codable, Equatable {
         case unknown
-//        case area = "area"
         case country = "country"
         case locality = "locality"
         case province = "province"
@@ -174,7 +146,6 @@ public enum Geocoder {
 
                 default:
                     self = .unknown
-
             }
         }
     }

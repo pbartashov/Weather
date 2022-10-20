@@ -19,25 +19,7 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
     /// Service for managing automatic fetches.
     private let fetchResultService: FetchResultService
 
-    /// Automatic fetching results.
-//    var fetchResults: [T] {
-//        fetchResultService.results as? [T] ?? []
-//    }
-
-//    var fetchedResultsPublisher: AnyPublisher<[[T]], Never> {
-//        //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> {
-//        //        fetchResultService.$state.eraseToAnyPublisher()
-//        fetchResultService.sections
-//            .map { sections in
-//                sections.compactMap { section in
-//                    section.objects?.compactMap { $0 as? T }
-//                }
-//            }
-//            .eraseToAnyPublisher()
-//    }
     var fetchedResultsPublisher: AnyPublisher<[T], Never> {
-        //    var fetchedResultsChangedPublisher: AnyPublisher<FetchResultServiceState, Never> {
-        //        fetchResultService.$state.eraseToAnyPublisher()
         fetchResultService.objects
             .compactMap { $0.compactMap { $0 as? T } }
             .eraseToAnyPublisher()
@@ -65,11 +47,6 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
 
             let fetchResults = try self?.context.fetch(fetchRequest)
             return fetchResults?.compactMap { ($0 as? Entity)?.objectID }
-//            if let results = fetchResults as? [Entity] {
-//                return results.map { $0.objectID }
-//            } else {
-//                throw DatabaseError.invalidManagedObjectType
-//            }
         }
 
         if let results = objectIDs?.compactMap({ context.object(with: $0) as? Entity }) {
@@ -88,7 +65,7 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
                 throw DatabaseError.error(desription: "Repository deallocated")
             }
             let managedObject = NSEntityDescription.insertNewObject(forEntityName: className,
-                                                                       into: self.context)
+                                                                    into: self.context)
             return managedObject.objectID
         }
 
@@ -118,12 +95,6 @@ final class CoreDataRepository<T: NSManagedObject>: Repository {
             }
         }
     }
-
-    /// Sets up a FetchResultService with stateChanged handler.
-    /// - Parameter stateChanged: Closure engaged on FetchResultService state changed.
-//    func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?) {
-//        fetchResultService.stateChanged = stateChanged
-//    }
 
     /// Starts fetching with given NSPredicate and array of NSSortDescriptors.
     /// - Parameters:

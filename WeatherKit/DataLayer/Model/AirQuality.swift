@@ -9,19 +9,12 @@ import Foundation
 
 // MARK: - AirQualityPack
 public struct AirQualityPack: Codable {
-//    public let coord: Coord?
     public let list: [AirQuality]?
 }
-
-// MARK: - Coord
-//struct Coord: Codable {
-//    let lon, lat: Int?
-//}
 
 // MARK: - AirQuality
 public struct AirQuality: Codable {
     public let main: AirQualityMain?
-//    public let components: [String: Double]?
     public let datetimeEpoch: Date
 
     enum CodingKeys: String, CodingKey {
@@ -38,4 +31,3 @@ public struct AirQualityMain: Codable {
         case airQualityIndex = "aqi"
     }
 }
-

@@ -189,7 +189,7 @@ final class SettingsView: UIView {
         }
         
         stackView.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(15)
+            make.top.equalTo(titleLabel.snp.bottom).offset(ConstantsUI.topMargin)
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-30)
         }

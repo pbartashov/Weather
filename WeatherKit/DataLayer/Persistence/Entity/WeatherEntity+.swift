@@ -36,16 +36,6 @@ extension WeatherEntity: DomainModel {
     }
 
     func copyDomainModel(model: Weather) {
-//        guard let latitude = model.latitude,
-//              let longitude = model.longitude,
-//              let weatherType = model.weatherType
-//        else {
-//            fatalError("Weather model has missing values")
-//        }
-
-//        self.latitude = Int16(latitude)
-//        self.longitude = Int16(longitude)
-//        self.weatherType = Int16(weatherType.rawValue)
         latitude = model.latitude
         longitude = model.longitude
         weatherTypeRaw = Int16(model.weatherType.rawValue)
@@ -76,13 +66,3 @@ extension WeatherEntity {
         .init(rawValue: Int(weatherTypeRaw)) ?? .none
     }
 }
-
-//
-//extension UIImage {
-//    convenience init?(data: Data?) {
-//        guard let data = data else {
-//            return nil
-//        }
-//        self.init(data: data)
-//    }
-//}

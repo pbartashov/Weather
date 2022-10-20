@@ -135,7 +135,7 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                     let section = NSCollectionLayoutSection(group: group)
                     section.orthogonalScrollingBehavior = .continuous
                     section.boundarySupplementaryItems = [chartHeaderItem]
-                    section.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 0,
+                    section.contentInsets = NSDirectionalEdgeInsets(top: ConstantsUI.topMargin, leading: 0,
                                                                     bottom: 20, trailing: 0)
                     return section
 

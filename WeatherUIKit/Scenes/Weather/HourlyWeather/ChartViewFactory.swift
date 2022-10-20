@@ -11,8 +11,8 @@ struct ChartViewFactory {
     func makeWeatherGraph() -> ChartView {
         let chartView = ChartView()
         chartView.backgroundColor = .brandLightGray
-        chartView.contentInset = UIEdgeInsets(top: 11, left: 16,
-                                              bottom: 8, right: 16 + 34)
+        chartView.contentInset = UIEdgeInsets(top: 11, left: ConstantsUI.leadingMargin,
+                                              bottom: 8, right: ConstantsUI.trailingMargin + 34)
 
         chartView.gradientColors = [UIColor(red: 61 / 255, green: 105 / 255, blue: 220 / 225, alpha: 0.3),
                                     UIColor(red: 32 / 255, green: 78 / 255, blue: 199 / 225, alpha: 0.3),

@@ -210,7 +210,7 @@ final class CurrentWeatherViewCell: UICollectionViewCell {
 
         iconStack.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(descriptionLabel.snp.bottom).offset(15)
+            make.top.equalTo(descriptionLabel.snp.bottom).offset(ConstantsUI.topMargin)
         }
 
         sunriseLabel.snp.makeConstraints { make in

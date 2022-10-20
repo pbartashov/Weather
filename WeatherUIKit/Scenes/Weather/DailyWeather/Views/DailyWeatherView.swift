@@ -39,7 +39,8 @@ final class DailyWeatherView: UIScrollView {
                                 forCellWithReuseIdentifier: DailyWeatherDaysCollectionViewCell.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.contentInset = .init(top: 0, left: 16, bottom: 0, right: 16)
+        collectionView.contentInset = .init(top: 0, left: ConstantsUI.leadingMargin,
+                                            bottom: 0, right: ConstantsUI.trailingMargin)
 
         return collectionView
     }()
@@ -197,9 +198,9 @@ final class DailyWeatherView: UIScrollView {
 
     private func setupLayouts() {
         titleLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(15)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(16)
+            make.top.equalToSuperview().offset(ConstantsUI.topMargin)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         daysCollectionView.snp.makeConstraints { make in
@@ -211,30 +212,30 @@ final class DailyWeatherView: UIScrollView {
 
         noonPanel.snp.makeConstraints { make in
             make.top.equalTo(daysCollectionView.snp.bottom).offset(40)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-15)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         midnightPanel.snp.makeConstraints { make in
             make.top.equalTo(noonPanel.snp.bottom).offset(12)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-15)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         sunAndMoonTitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(midnightPanel.snp.bottom).offset(20)
-            make.leading.equalToSuperview().offset(16)
+            make.top.equalTo(midnightPanel.snp.bottom).offset(ConstantsUI.spacing)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
         }
 
         moonphaseView.snp.makeConstraints { make in
-            make.top.equalTo(midnightPanel.snp.bottom).offset(20)
-            make.trailing.equalToSuperview().offset(-15)
+            make.top.equalTo(midnightPanel.snp.bottom).offset(ConstantsUI.spacing)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         sunAndMoonStackView.snp.makeConstraints { make in
-            make.top.equalTo(moonphaseView.snp.bottom).offset(20)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-15)
+            make.top.equalTo(moonphaseView.snp.bottom).offset(ConstantsUI.spacing)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         sunAndMoonLineView.snp.makeConstraints { make in
@@ -245,7 +246,7 @@ final class DailyWeatherView: UIScrollView {
 
         airQualityTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(sunAndMoonStackView.snp.bottom).offset(24)
-            make.leading.equalToSuperview().offset(16)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
         }
 
         airQualityIndexLabel.snp.makeConstraints { make in
@@ -267,12 +268,12 @@ final class DailyWeatherView: UIScrollView {
 
         airQualityDesctriptionLabel.snp.makeConstraints { make in
             make.top.equalTo(airQualityIndexLabel.snp.bottom).offset(10)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-15)
+            make.leading.equalToSuperview().offset(ConstantsUI.leadingMargin)
+            make.trailing.equalToSuperview().offset(-ConstantsUI.trailingMargin)
         }
 
         self.snp.makeConstraints { make in
-            make.width.equalTo(noonPanel.snp.width).offset(16 + 15)
+            make.width.equalTo(noonPanel.snp.width).offset(ConstantsUI.leadingMargin + ConstantsUI.trailingMargin)
             make.bottom.equalTo(airQualityDesctriptionLabel).offset(23)
         }
     }

@@ -17,22 +17,17 @@ enum AirQualityRequest: RequestProtocol {
     }
 
     var path: String {
-//        let basePath =
         "/data/2.5/air_pollution/forecast"
-//        switch self {
-//            case let .getAirQualityForecastFor:
-//                return "\(basePath)/\(location.latitude),\(location.longitude)/today"
-//
-//        }
     }
 
     var urlParams: [String: String?] {
-        var urlParams = ["appid": String(data: AirQualityAPIConstants.clientId, encoding: .utf8)]
+        let appid = String(data: AirQualityAPIConstants.clientId, encoding: .utf8)
+        var urlParams = ["appid": appid]
         switch self {
             case let .getAirQualityForecastFor(location):
                 urlParams["lat"] = "\(location.latitude)"
                 urlParams["lon"] = "\(location.longitude)"
-    }
+        }
 
         return urlParams
     }
