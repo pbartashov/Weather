@@ -8,7 +8,6 @@
 import Foundation
 
 // MARK: - WeatherPack
-#warning("REQUEST????")
 public struct WeatherPack {
 //    let queryCost: Int?
     public let latitude, longitude: Double

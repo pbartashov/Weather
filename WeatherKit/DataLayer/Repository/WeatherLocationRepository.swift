@@ -22,19 +22,11 @@ public protocol WeatherLocationRepositoryProtocol {
     func delete(location: WeatherLocation) async throws
     /// Saves changes to Repository.
     func saveChanges() async throws
-
-//    func create(cityName: String, latitude: Double, longitude: Double) async throws
-
-
-
-
-
+    /// Weather location publisher
     var weatherLocationsPublisher: AnyPublisher<[WeatherLocation], Never> { get }
-//    func startFetchingWith(predicate: NSPredicate?,
-//                           sortDescriptors: [NSSortDescriptor]?) throws
-
+    /// Starts fetchig locations
     func startFetchingWeatherLocation() async throws
-
+    /// Reindexes locations in persistant store to arrange indexes continuously
     func reindex() async throws
 }
 
@@ -48,13 +40,7 @@ public final class WeatherLocationRepository {
     /// The Core Data WeatherLocation repository.
     private let repository: CoreDataRepository<WeatherLocationEntity>
 
-
-    //    @Published public var currentWeatherLocation: WeatherLocation?
-    //    @Published public var hourlyWeatherLocation: [WeatherLocation] = []
-    //    @Published public var dailyWeatherLocation: [WeatherLocation] = []
-
-    //    public var currentWeatherLocationPublisher: AnyPublisher<WeatherLocation, Never>
-
+    /// Weather location publisher
     public var weatherLocationsPublisher: AnyPublisher<[WeatherLocation], Never> {
         repository.fetchedResultsPublisher
             .map { locationEntities in
@@ -62,7 +48,6 @@ public final class WeatherLocationRepository {
             }
             .eraseToAnyPublisher()
     }
-
 
     // MARK: - LifeCicle
 
@@ -73,13 +58,10 @@ public final class WeatherLocationRepository {
     ) {
         self.repository = CoreDataRepository<WeatherLocationEntity>(managedObjectContext: context)
         self.requestManager = requestManager
-
-        //        bindToRepository()
     }
-
 }
 
-
+// MARK: - WeatherLocationRepositoryProtocol methods
 extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
     private var mainSortDescriptors: [NSSortDescriptor] {
         [
@@ -92,20 +74,9 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         locationEntities.map { $0.toDomainModel() }
     }
 
-    private func getPredicate(index: Int
-    //latitude: Double,
-                              //longitude: Double
-    ) -> NSPredicate {
-        //                              locationType: WeatherLocationType) -> NSPredicate {
-                NSPredicate(format: "index == %@", NSNumber(value: index))
-//        NSPredicate(format: "latitude BETWEEN { %@ , %@ } AND longitude BETWEEN { %@ , %@ }",
-//                    NSNumber(value: latitude - Constants.locationAccuracy),
-//                    NSNumber(value: latitude + Constants.locationAccuracy),
-//                    NSNumber(value: longitude - Constants.locationAccuracy),
-//                    NSNumber(value: longitude + Constants.locationAccuracy))
+    private func getPredicate(index: Int) -> NSPredicate {
+        NSPredicate(format: "index == %@", NSNumber(value: index))
     }
-
-
 
     /// Get WeatherLocation using a predicate
     public func getWeatherLocation(predicate: NSPredicate?) async throws -> [WeatherLocation] {
@@ -136,22 +107,7 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         }
     }
 
-
-
-//    public func create(cityName: String, latitude: Double, longitude: Double) async throws {
-//       let location = WeatherLocation(index: 0,
-//                                cityName: city,
-//                                latitude: latitude,
-//                                longitude: longitude)
-//            }
-//    }
-
     private func getWeatherLocationEntity(for location: WeatherLocation) async throws -> WeatherLocationEntity {
-        //        let locationPredicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
-        //        let typePredicate = NSPredicate(format: "locationType == %@", location.locationType.rawValue)
-        //        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [locationPredicate, typePredicate])
-        //
-        //        let locationEntities = try await repository.get(predicate: predicate, sortDescriptors: [mainSortDescriptor])
         let locationEntities = try await getWeatherLocationEntities(for: location)
         guard let locationEntity = locationEntities.first else {
             throw DatabaseError.notFound
@@ -162,10 +118,6 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
 
     private func getWeatherLocationEntities(for location: WeatherLocation) async throws -> [WeatherLocationEntity] {
         let predicate = getPredicate(index: location.index)
-//        let locationPredicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
-//        let typePredicate = NSPredicate(format: "weatherTypeRaw == %@", NSNumber(value:  weather.weatherType.rawValue))
-//        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [locationPredicate, typePredicate])
-
         return try await repository.get(predicate: predicate, sortDescriptors: mainSortDescriptors)
     }
 
@@ -174,27 +126,13 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
         try await repository.saveChanges()
     }
 
-    /// Sets up a FetchResultService with stateChanged handler.
-    //    public func setupResultsControllerStateChangedHandler(stateChanged:((FetchResultServiceState) -> Void)?) {
-    //        repository.setupResultsControllerStateChangedHandler(stateChanged: stateChanged)
-    //    }
-
-
-
-
-
-
+    /// Starts fetchig locations
     public func startFetchingWeatherLocation() async throws {
-//        let predicate = getPredicate(latitude: location.latitude, longitude: location.longitude)
-
         try repository.startFetchingWith(predicate: nil,
-                                         sortDescriptors: mainSortDescriptors)//,
-        //                                         sectionNameKeyPath: "weatherTypeRaw")
-
-//        try await fetchCurrentDayWeatherLocationFromAPI(for: location)
+                                         sortDescriptors: mainSortDescriptors)
     }
 
-
+    /// Reindexes locations in persistant store to arrange indexes continuously
     public func reindex() async throws {
         let sortDescriptor = NSSortDescriptor(keyPath: \WeatherLocationEntity.index, ascending: true)
         let locationEntities = try await repository.get(predicate: nil,
@@ -206,83 +144,4 @@ extension WeatherLocationRepository: WeatherLocationRepositoryProtocol {
 
         try await saveChanges()
     }
-
-//    private func fetchCurrentDayWeatherLocationFromAPI(for location: WeatherLocationLocation
-//                                               //        latitude: Double,
-//                                               //                                 longitude: Double
-//    ) async throws {
-//        let weatherPack: WeatherLocationPack = try await requestManager.perform(
-//            WeatherLocationRequest.getCurrentDayWeatherLocationFor(location: location)
-//        )
-//        weatherContainerSubject.send(weatherPack)
-//
-//        guard let todayWeatherLocation = weatherPack.days.first else { return }
-//        //        print(todayWeatherLocation)
-//        if let currentWeatherLocation = weatherPack.currentWeatherLocation  {
-//            //            print(currentWeatherLocation)
-//            try await store([currentWeatherLocation])
-//        }
-//        //            try await store([currentWeatherLocation.filledWith(weatherType: .current,
-//        //                                                       longitude: location.longitude,
-//        //                                                       latitude: location.latitude)])
-//        //        }
-//
-//        guard let hourlyWeatherLocation = todayWeatherLocation.hourlyWeatherLocations else { return }
-//        //        print(hourlyWeatherLocation)
-//        //        hourlyWeatherLocation = hourlyWeatherLocation.map { weather in
-//        //            weather.filledWith(weatherType: .hourly,
-//        //                               longitude: location.longitude,
-//        //                               latitude: location.latitude)
-//        //        }
-//
-//        try await store(hourlyWeatherLocation)
-//
-//
-//        //        guard let currentWeatherLocation = currentWeatherLocationContainer.data?.first else { throw NetworkError.invalidServerResponse }
-//
-//
-//
-//        //            for var animal in animalsContainer.animals {
-//        //                animal.toManagedObject()
-//        //            }
-//    }
-//
-//    private func fetchForecastWeatherLocationFromAPI(for location: WeatherLocationLocation,
-//                                             dateInterval: DateInterval
-//    ) async throws {
-//
-//        let weatherPack: WeatherLocationPack = try await requestManager.perform(
-//            WeatherLocationRequest.getForecastWeatherLocationFor(location: location, dateInterval: dateInterval)
-//        )
-//
-//        try await store(weatherPack.days)
-//    }
-//
-//    private func store(_ weathers: [WeatherLocation]) async throws {
-//        guard let weather = weathers.first else {
-//            return
-//        }
-//
-//        var weatherEntities = try await getWeatherLocationEntities(for: weather)
-//
-//        while weatherEntities.count < weathers.count {
-//            let newEntity = try await repository.create()
-//            weatherEntities.append(newEntity)
-//        }
-//
-//        for (entity, weather) in zip(weatherEntities, weathers) {
-//            entity.copyDomainModel(model: weather)
-//        }
-//
-//        try await repository.saveChanges()
-//
-//    }
-
-
-
-
-
-
-
 }
-

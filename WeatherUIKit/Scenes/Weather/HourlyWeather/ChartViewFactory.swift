@@ -46,11 +46,6 @@ struct ChartViewFactory {
         chartView.xAxisPointLabelFont = .systemFont(ofSize: 14)
         chartView.xAxisPointLabelColor = .brandTextColor
 
-
-//        chartView.startGradientColor = UIColor(red: 61 / 255, green: 105 / 255, blue: 220 / 225, alpha: 0.3)
-//        chartView.startGradientColor = UIColor(red: 32 / 255, green: 78 / 255, blue: 199 / 225, alpha: 0)
         return chartView
-
-
     }
 }

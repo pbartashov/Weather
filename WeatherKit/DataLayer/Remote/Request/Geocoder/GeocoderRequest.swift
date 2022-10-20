@@ -28,7 +28,7 @@ enum GeocoderRequest: RequestProtocol {
     }
 
     var urlParams: [String: String?] {
-        var urlParams = ["apikey": LocationAPIConstants.clientId,
+        var urlParams = ["apikey": String(data: LocationAPIConstants.clientId, encoding: .utf8),
                          "results": LocationAPIConstants.resultsCount,
                          "format": "json",
                          "kind": "locality",

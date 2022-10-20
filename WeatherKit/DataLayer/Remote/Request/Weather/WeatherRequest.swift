@@ -64,7 +64,7 @@ enum WeatherRequest: RequestProtocol {
 //https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/vladivostok/today?unitGroup=us&include=current%2Chours&key=YQ8FCBUW53CPXSWQKMQVPLFZY&contentType=json
 
     var urlParams: [String: String?] {
-        var urlParams = ["key": WeatherAPIConstants.clientId,
+        var urlParams = ["key": String(data: WeatherAPIConstants.clientId, encoding: .utf8),
                          "lang": WeatherAPIConstants.language,
                          "unitGroup": "metric",
                          "iconSet": "icons2"]

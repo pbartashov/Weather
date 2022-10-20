@@ -61,17 +61,7 @@ final class FetchResultService: NSObject, NSFetchedResultsControllerDelegate {
     // MARK: - Metods
 
     private func sendCurrentObjects() {
-
-        #warning("REMOVE")
-//        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3)) { [weak self] in
-//            guard let self = self else { return }
-            self.onObjectsChange.send(self.fetchedResultsController?.fetchedObjects ?? [])
-//        }
-
-
-
-
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        self.onObjectsChange.send(self.fetchedResultsController?.fetchedObjects ?? [])
     }
 
     func startFetching(with request: NSFetchRequest<NSFetchRequestResult>,

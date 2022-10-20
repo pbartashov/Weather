@@ -8,10 +8,6 @@
 import UIKit
 
 extension UIColor {
-//    static var brandBlue: UIColor {
-//        getBrandColor(named: "AccentColor")
-//    }
-
     static var brandOrange: UIColor {
         getBrandColor(named: "OrangeColor")
     }
@@ -43,12 +39,6 @@ extension UIColor {
     static var brandPurpleColor: UIColor {
         getBrandColor(named: "PurpleColor")
     }
-
-
-
-
-
-
 
     static func getBrandColor(named colorName: String) -> UIColor {
         guard let color = UIColor(named: colorName) else {

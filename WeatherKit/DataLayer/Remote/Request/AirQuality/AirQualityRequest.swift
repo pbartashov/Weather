@@ -27,7 +27,7 @@ enum AirQualityRequest: RequestProtocol {
     }
 
     var urlParams: [String: String?] {
-        var urlParams = ["appid": AirQualityAPIConstants.clientId]
+        var urlParams = ["appid": String(data: AirQualityAPIConstants.clientId, encoding: .utf8)]
         switch self {
             case let .getAirQualityForecastFor(location):
                 urlParams["lat"] = "\(location.latitude)"

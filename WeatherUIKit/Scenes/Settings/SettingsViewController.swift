@@ -10,13 +10,9 @@ import Combine
 
 public final class SettingsViewController: UIViewController {
 
-
-    // MARK: - Properties
-
     // MARK: - Views
 
     private let settingsView = SettingsView()
-
     private var subscriptions = Set<AnyCancellable>()
 
     // MARK: - LifeCicle
@@ -27,15 +23,11 @@ public final class SettingsViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-
         self.view.backgroundColor = .brandPurpleColor
         navigationController?.navigationBar.tintColor = .brandLightGray
-//        setupViewModel()
 
         bindView()
     }
-
-
 
     // MARK: - Metods
 
@@ -50,9 +42,4 @@ public final class SettingsViewController: UIViewController {
             }
             .store(in: &subscriptions)
     }
-//    private func setupViewModel() {
-//
-//    }
-
-
 }

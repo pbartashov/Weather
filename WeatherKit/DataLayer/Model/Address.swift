@@ -27,10 +27,6 @@ public struct LocationAddress: Hashable {
     }
 }
 
-
-
-#warning("//enem Geocoder namespace {}")
-
 public enum Geocoder {
 
     // MARK: - GeocoderAPIResponse

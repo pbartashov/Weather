@@ -13,8 +13,6 @@ public final class SearchLocationDependencyContainer {
 
     private let searchLocationResponder: SearchLocationResponder
 
-    // MARK: - Views
-
     // MARK: - LifeCicle
     init(searchLocationResponder: SearchLocationResponder) {
         self.searchLocationResponder = searchLocationResponder

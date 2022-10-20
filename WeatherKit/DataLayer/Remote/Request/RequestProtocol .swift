@@ -49,7 +49,7 @@ extension RequestProtocol {
 
         
 
-        var queryItems = urlParams.map { URLQueryItem(name: $0, value: $1) }
+        let queryItems = urlParams.map { URLQueryItem(name: $0, value: $1) }
 //        queryItems.append(URLQueryItem(name: "key", value: APIConstants.clientId))
 //        queryItems.append(URLQueryItem(name: "lang", value: APIConstants.language))
         components.queryItems = queryItems
@@ -73,8 +73,6 @@ extension RequestProtocol {
             urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params)
         }
 
-
-        print(urlRequest.url)
         return urlRequest
     }
 }

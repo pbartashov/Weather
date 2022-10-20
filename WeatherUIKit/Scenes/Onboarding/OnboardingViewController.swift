@@ -11,13 +11,12 @@ import WeatherKit
 public final class OnboardingViewController: UIViewController {
 
     // MARK: - Properties
+
     private let viewModel: OnboardingViewModel
     private let onboardingView: OnboardingView
-//    private let onboardingResponder: OnboardingResponder
-
-    // MARK: - Views
 
     // MARK: - LifeCicle
+
     public init(
         viewModel: OnboardingViewModel,
         onboardingResponder: OnboardingResponder
@@ -31,7 +30,6 @@ public final class OnboardingViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-
     public override func loadView() {
         view = onboardingView
     }
@@ -39,31 +37,9 @@ public final class OnboardingViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.backgroundColor = .brandPurpleColor
-        
-//        let onboardingView = OnboardingView()
-//        view.addSubview(onboardingView)
-//
-//        onboardingView.snp.makeConstraints { make in
-//            make.edges.equalToSuperview()
-//        }
-//        setupViewModel()
-        // Do any additional setup after loading the view.
-
-
+        view.backgroundColor = .brandPurpleColor
         onboardingView.setupView(with: viewModel)
-
     }
-
-
-
-    // MARK: - Metods
-
-    private func setupViewModel() {
-
-    }
-    
-
 }
 
 #warning("Readme")

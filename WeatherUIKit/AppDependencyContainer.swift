@@ -9,60 +9,28 @@ import WeatherKit
 import UIKit
 
 public class AppDependencyContainer {
-    let contextProvider: CoreDataContextProvider
+
     // MARK: - Properties
 
-    //
-    //    // From parent container
-    //    let imageCache: ImageCache
-    //    let signedInViewModel: SignedInViewModel
-    //
-    //    // Context
-    //    let pickupLocation: Location
-    //
+    let contextProvider: CoreDataContextProvider
 
     // Long-lived dependencies
-        let sharedMainViewModel: MainViewModel
-    //    let newRideRemoteAPI: NewRideRemoteAPI
-    //    let newRideRepository: NewRideRepository
-    //    let rideOptionDataStore: RideOptionDataStore
-    //    let pickMeUpViewModel: PickMeUpViewModel
-
-    // MARK: - Views
+    let sharedMainViewModel: MainViewModel
 
     // MARK: - LifeCicle
 
     public init(contextProvider: CoreDataContextProvider = CoreDataContextProvider.shared) {
         func makeMainViewModel() -> MainViewModel {
             let repository = WeatherLocationRepository(context: contextProvider.viewContext)
-            #warning("context")
-
-
-
-
             return MainViewModel(locationsRepository: repository)
         }
-
         self.contextProvider = contextProvider
         self.sharedMainViewModel = makeMainViewModel()
-
-
-
     }
 
     // MARK: - Metods
 
     public func makeMainViewController() -> MainViewController {
-//        let launchViewController = makeLaunchViewController()
-//
-//        let onboardingViewControllerFactory = {
-//            return self.makeOnboardingViewController()
-//        }
-//
-//        let signedInViewControllerFactory = { (userSession: UserSession) in
-//            return self.makeSignedInViewController(session: userSession)
-//        }
-
         let weatherViewControllerFactory = { index in
             return self.makeWeartherViewController(for: index)
         }
@@ -88,7 +56,8 @@ public class AppDependencyContainer {
                                   settingsViewControllerFactory: settingsViewControllerFactory,
                                   addLocationViewControllerFactory: addLocationViewControllerFactory,
                                   onboardingViewControllerFactory: onboardingViewControllerFactory,
-                                  searchLocationViewControllerFactory: searchLocationViewControllerFactory, locationsViewControllerFactory: self
+                                  searchLocationViewControllerFactory: searchLocationViewControllerFactory,
+                                  locationsViewControllerFactory: self
         )
     }
 
@@ -96,8 +65,6 @@ public class AppDependencyContainer {
         let mainViewController = makeMainViewController()
         return UINavigationController(rootViewController: mainViewController)
     }
-
-
 
     public func makeWeartherViewController(for index: Int) -> WeathersViewController {
         let location = sharedMainViewModel.locations[index]
@@ -120,14 +87,13 @@ public class AppDependencyContainer {
         return dependencyContainer.makeOnboardingViewController()
     }
 
-
     public func makeSearchLocationViewController() -> SearchLocationViewController {
         let dependencyContainer = SearchLocationDependencyContainer(searchLocationResponder: sharedMainViewModel)
         return dependencyContainer.makeSearchLocationViewController()
     }
 }
 
-
+// MARK: - LocationViewControllerFactoryProtocol methods
 extension AppDependencyContainer: LocationViewControllerFactoryProtocol {
     public func makeDeniedViewController() -> UIViewController {
         let alert = UIAlertController(title: "Резрешите доступ к геолокации в настройках",
@@ -161,6 +127,4 @@ extension AppDependencyContainer: LocationViewControllerFactoryProtocol {
 
         return alert
     }
-
-
 }

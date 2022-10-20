@@ -28,20 +28,13 @@ public final class HourlyWeatherViewController: UICollectionViewController {
 
     private var subscriptions = Set<AnyCancellable>()
 
-    private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
-
+    private var dataSource: UICollectionViewDiffableDataSource<Section, WeatherCollectionItem>!
     private var sections = [Section]()
-
-
-    // MARK: - Views
-
 
     // MARK: - LifeCicle
 
     init(viewModel: HourlyWeatherViewModel) {
-
         self.viewModel = viewModel
-
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -56,14 +49,9 @@ public final class HourlyWeatherViewController: UICollectionViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-
         initialize()
-
         applySnapshot()
     }
-
-
-
 
     // MARK: - Metods
 
@@ -83,21 +71,13 @@ public final class HourlyWeatherViewController: UICollectionViewController {
         viewModel.$weathers
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-//                print("🌴")
-
-                //                self?.applySnapshot()
-//                DispatchQueue.main.async {
-                    self?.applySnapshot()
-//                }
-//                self?.collectionView.reloadData()
+                self?.applySnapshot()
             }
             .store(in: &subscriptions)
-
     }
 
     private func configureCollectionView() {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
-        // Register cell classes
 
         collectionView.register(ChartViewCell.self,
                                 forCellWithReuseIdentifier: ChartViewCell.identifier)
@@ -113,9 +93,6 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                                 forSupplementaryViewOfKind: SupplementaryViewKind.hourlyWeatherHeader,
                                 withReuseIdentifier: LineReusableView.identifier)
 
-//        collectionView.contentInsetAdjustmentBehavior = .never
-//        collectionView.contentInset = .init(top: 88, left: 0, bottom: 0, right: 0)
-
         configureDataSource()
     }
 
@@ -125,25 +102,22 @@ public final class HourlyWeatherViewController: UICollectionViewController {
 
             let headerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                         heightDimension: .estimated(22))
-            let chartHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize,
-                                                                                      elementKind: SupplementaryViewKind.chartHeader,
-                                                                                      alignment: .topLeading)
-
+            let chartHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: headerItemSize,
+                elementKind: SupplementaryViewKind.chartHeader,
+                alignment: .topLeading
+            )
             chartHeaderItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 48,
                                                                     bottom: 0, trailing: 0)
-//
+
             let hourlyWeatherHeaderItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                      heightDimension: .estimated(5))
+                                                                     heightDimension: .estimated(5))
 
-            let hourlyWeatherHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: hourlyWeatherHeaderItemSize,
-                                                                             elementKind: SupplementaryViewKind.hourlyWeatherHeader,
-                                                                             alignment: .top)
-
-//            let supplementaryItemContentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4,
-//                                                                         bottom: 0, trailing: 4)
-//            headerItem.contentInsets = supplementaryItemContentInsets
-//            topLineItem.contentInsets = supplementaryItemContentInsets
-//            bottomLineItem.contentInsets = supplementaryItemContentInsets
+            let hourlyWeatherHeaderItem = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: hourlyWeatherHeaderItemSize,
+                elementKind: SupplementaryViewKind.hourlyWeatherHeader,
+                alignment: .top
+            )
 
             let section = self.sections[sectionIndex]
             switch section {
@@ -152,26 +126,17 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalHeight(3),
                                                           heightDimension: .fractionalHeight(1))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
-//                    item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8,
-//                                                                 bottom: 0, trailing: 8)
-#warning("absolute")
+
                     let groupSize = NSCollectionLayoutSize(widthDimension: .estimated(1),
                                                            heightDimension: .estimated(152))
-
                     let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
                                                                    subitems: [item])
-
-//                    group.contentInsets = NSDirectionalEdgeInsets(top: 20, leading: 8,
-//                                                                  bottom: 0, trailing: 8)
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.orthogonalScrollingBehavior = .continuous
                     section.boundarySupplementaryItems = [chartHeaderItem]
-                    //                                                          bottomLineItem]
-
                     section.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 0,
                                                                     bottom: 20, trailing: 0)
-
                     return section
 
                 case .hourlyWeatherSection:
@@ -179,21 +144,14 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                           heightDimension: .fractionalHeight(1))
                     let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-//                    item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0,
-//                                                                 bottom: 0, trailing: 0)
-
                     let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                            heightDimension: .estimated(145))
                     let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize,
                                                                  subitems: [item])
-//                    group.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 8,
-//                                                                  bottom: 0, trailing: 8)
 
                     let section = NSCollectionLayoutSection(group: group)
                     section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0,
                                                                     bottom: 20, trailing: 0)
-
                     section.boundarySupplementaryItems = [hourlyWeatherHeaderItem]
 
                     return section
@@ -207,34 +165,31 @@ public final class HourlyWeatherViewController: UICollectionViewController {
         dataSource = .init(collectionView: collectionView, cellProvider: { [weak self]
             (collectionView, indexPath, item) -> UICollectionViewCell? in
             guard let self = self else { return nil }
+
             let section = self.sections[indexPath.section]
             switch section {
                 case .chartSection:
                     guard
-                        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartViewCell.identifier,
-                                                                      for: indexPath)
-                            as? ChartViewCell
+                        let cell = collectionView.dequeueReusableCell(
+                            withReuseIdentifier: ChartViewCell.identifier,
+                            for: indexPath
+                        ) as? ChartViewCell
                     else {
                         return nil
                     }
-
                     self.setup(cell: cell)
-//                    cell.setNeedsDisplay()
-//                    cell.setNeedsLayout()
 
                     return cell
 
                 case .hourlyWeatherSection:
-
-                    //                    print(indexPath)
                     guard
-                        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HourlyWeatherDetailedViewCell.identifier,
-                                                                      for: indexPath)
-                            as? HourlyWeatherDetailedViewCell
+                        let cell = collectionView.dequeueReusableCell(
+                            withReuseIdentifier: HourlyWeatherDetailedViewCell.identifier,
+                            for: indexPath
+                        ) as? HourlyWeatherDetailedViewCell
                     else {
                         return nil
                     }
-
                     cell.setup(with: self.viewModel.weathers[indexPath.item])
 
                     return cell
@@ -246,35 +201,29 @@ public final class HourlyWeatherViewController: UICollectionViewController {
             switch kind {
                 case SupplementaryViewKind.chartHeader:
                     guard
-                        let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: SupplementaryViewKind.chartHeader,
-                                                                                         withReuseIdentifier: ChartSectionHeaderView.identifier,
-                                                                                         for: indexPath)
-                            as? ChartSectionHeaderView
+                        let headerView = collectionView.dequeueReusableSupplementaryView(
+                            ofKind: SupplementaryViewKind.chartHeader,
+                            withReuseIdentifier: ChartSectionHeaderView.identifier,
+                            for: indexPath
+                        ) as? ChartSectionHeaderView
                     else {
                         return nil
                     }
 
                     headerView.setup(labelTitle: self.viewModel.cityName)
-//                    presentHourlyWeatherSubscription = headerView
-//                        .buttonTappedPublisher
-//                        .eraseType()
-//                        .sink {[weak self] in
-//                            self?.presentHourlyWeather()
-//                        }
-
-                    //                    self.viewModel.subscribeToggleForecastHorizon(to: publisher)
 
                     return headerView
 
                 case SupplementaryViewKind.hourlyWeatherHeader:
                     guard
-                        let lineView = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
-                                                                                       withReuseIdentifier: LineReusableView.identifier,
-                                                                                       for: indexPath)
-                            as? LineReusableView else {
+                        let lineView = collectionView.dequeueReusableSupplementaryView(
+                            ofKind: kind,
+                            withReuseIdentifier: LineReusableView.identifier,
+                            for: indexPath
+                        ) as? LineReusableView
+                    else {
                         return nil
                     }
-
                     lineView.setColor(.brandLightGray)
 
                     return lineView
@@ -283,31 +232,23 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                     return nil
             }
         }
-
-
-
     }
 
     private func applySnapshot() {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        var snapshot = NSDiffableDataSourceSnapshot<Section, WeatherCollectionItem>()
 
         snapshot.appendSections([.chartSection])
-        snapshot.appendItems([Item.empty(UUID())], toSection: .chartSection)
+        snapshot.appendItems([WeatherCollectionItem.empty(UUID())], toSection: .chartSection)
 
         snapshot.appendSections([.hourlyWeatherSection])
-
-
-        let items = viewModel.weathers.map { Item.hourlyWeatherItem($0) }
+        let items = viewModel.weathers.map { WeatherCollectionItem.hourlyWeatherItem($0) }
         snapshot.appendItems(items, toSection: .hourlyWeatherSection)
-
-
 
         sections = snapshot.sectionIdentifiers
         dataSource.apply(snapshot)
     }
 
     private func setup(cell: ChartViewCell) {
-//        print("🌴🌴")
         let weathers = viewModel.weathers.enumerated().compactMap { (i, weather) in
             i.isMultiple(of: 3) ? weather : nil
         }
@@ -323,10 +264,5 @@ public final class HourlyWeatherViewController: UICollectionViewController {
                    infoImages: images,
                    infoTexts: precipprob,
                    labelTexts: times)
-
-//        print("🌴🌴🌴\(temperatures.count)")
     }
-
-
-
 }

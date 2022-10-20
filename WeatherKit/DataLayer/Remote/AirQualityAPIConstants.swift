@@ -7,7 +7,5 @@
 
 enum AirQualityAPIConstants {
     static let host = "api.openweathermap.org"
-    //    static let language = "ru"
-    static let clientId = "8f06587c49731ae0b0d2e45b083a646d"
-#warning("hide?")
+    static let clientId = Data([56, 102, 48, 54, 53, 56, 55, 99, 52, 57, 55, 51, 49, 97, 101, 48, 98, 48, 100, 50, 101, 52, 53, 98, 48, 56, 51, 97, 54, 52, 54, 100])
 }

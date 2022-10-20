@@ -13,8 +13,6 @@ public final class OnboardingDependencyContainer {
 
     private let onboardingResponder: OnboardingResponder
 
-    // MARK: - Views
-
     // MARK: - LifeCicle
     init(onboardingResponder: OnboardingResponder) {
         self.onboardingResponder = onboardingResponder

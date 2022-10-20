@@ -12,7 +12,7 @@ extension Publisher where Output: Equatable {
         self.removeDuplicates()
             .eraseType()
     }
-
+    
     func eraseType() -> AnyPublisher<Void, Self.Failure> {
         self.map { _ in }
             .eraseToAnyPublisher()
